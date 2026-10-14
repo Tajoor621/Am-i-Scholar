@@ -3,6 +3,7 @@ package com.amischolar.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,7 +43,6 @@ import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.feature.ResearchModules
 import com.amischolar.app.ui.theme.AmIScholarTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -66,16 +66,20 @@ class MainActivity : ComponentActivity() {
                         NewPaperScreen(
                             onBack = { navController.popBackStack() },
                             onCreate = { title, question, discipline, style ->
-                                MainScope().launch {
+                                lifecycleScope.launch {
                                     withContext(Dispatchers.IO) {
-                                        dao.insert(ResearchProject(
-                                            title = title.trim(),
-                                            researchQuestion = question.trim(),
-                                            discipline = discipline.trim().ifBlank { "Not set" },
-                                            citationStyle = style
-                                        ))
+                                        dao.insert(
+                                            ResearchProject(
+                                                title = title.trim(),
+                                                researchQuestion = question.trim(),
+                                                discipline = discipline.trim().ifBlank { "Not set" },
+                                                citationStyle = style
+                                            )
+                                        )
                                     }
-                                    navController.popBackStack()
+                                    if (!isFinishing && !isDestroyed) {
+                                        navController.popBackStack()
+                                    }
                                 }
                             }
                         )
@@ -88,7 +92,8 @@ class MainActivity : ComponentActivity() {
                         val module = ResearchModules.all.firstOrNull { it.route == route }
                         ModuleScreen(
                             title = module?.title ?: "Research module",
-                            description = module?.description ?: "This module is planned for a future milestone.",
+                            description = module?.description
+                                ?: "This module is planned for a future milestone.",
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -128,7 +133,10 @@ private fun HomeScreen(
                         Text(project.title, style = MaterialTheme.typography.titleMedium)
                         if (project.researchQuestion.isNotBlank()) Text(project.researchQuestion)
                         Spacer(Modifier.height(8.dp))
-                        Text("${project.discipline} • ${project.citationStyle}", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            "${project.discipline} • ${project.citationStyle}",
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
             }
@@ -139,7 +147,9 @@ private fun HomeScreen(
             items(ResearchModules.all, key = { it.route }) { module ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -182,23 +192,31 @@ private fun NewPaperScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text("Start with a working title. Refine it as your research develops.")
-            OutlinedTextField(title, { title = it }, label = { Text("Working title *") },
-                modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(question, { question = it }, label = { Text("Research question (optional)") },
-                modifier = Modifier.fillMaxWidth(), minLines = 2)
-            OutlinedTextField(discipline, { discipline = it }, label = { Text("Discipline (optional)") },
-                modifier = Modifier.fillMaxWidth(), singleLine = true)
+            OutlinedTextField(
+                title, { title = it }, label = { Text("Working title *") },
+                modifier = Modifier.fillMaxWidth(), singleLine = true
+            )
+            OutlinedTextField(
+                question, { question = it }, label = { Text("Research question (optional)") },
+                modifier = Modifier.fillMaxWidth(), minLines = 2
+            )
+            OutlinedTextField(
+                discipline, { discipline = it }, label = { Text("Discipline (optional)") },
+                modifier = Modifier.fillMaxWidth(), singleLine = true
+            )
             Text("Citation style", style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 styles.take(3).forEach { style ->
-                    if (citationStyle == style) Button(onClick = { citationStyle = style }) { Text(style) }
-                    else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
+                    if (citationStyle == style) Button(onClick = { citationStyle = style }) {
+                        Text(style)
+                    } else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 styles.drop(3).forEach { style ->
-                    if (citationStyle == style) Button(onClick = { citationStyle = style }) { Text(style) }
-                    else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
+                    if (citationStyle == style) Button(onClick = { citationStyle = style }) {
+                        Text(style)
+                    } else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
                 }
             }
             Button(
