@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,8 +60,37 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             projects = projects,
                             onNewPaper = { navController.navigate("new-paper") },
-                            onOpenModule = { navController.navigate("module/$it") }
+                            onOpenModule = { navController.navigate("module/$it") },
+                            onOpenProject = { navController.navigate("project/$it") }
                         )
+                    }
+                    composable(
+                        route = "project/{id}",
+                        arguments = listOf(navArgument("id") { type = NavType.LongType })
+                    ) { entry ->
+                        val id = entry.arguments?.getLong("id") ?: -1L
+                        var project by remember(id) { mutableStateOf<ResearchProject?>(null) }
+                        androidx.compose.runtime.LaunchedEffect(id) {
+                            project = withContext(Dispatchers.IO) { dao.findById(id) }
+                        }
+                        project?.let { current ->
+                            ProjectEditorScreen(
+                                project = current,
+                                onBack = { navController.popBackStack() },
+                                onSave = { updated ->
+                                    lifecycleScope.launch {
+                                        withContext(Dispatchers.IO) { dao.update(updated) }
+                                        navController.popBackStack()
+                                    }
+                                },
+                                onDelete = {
+                                    lifecycleScope.launch {
+                                        withContext(Dispatchers.IO) { dao.deleteById(id) }
+                                        navController.popBackStack()
+                                    }
+                                }
+                            )
+                        }
                     }
                     composable("new-paper") {
                         NewPaperScreen(
@@ -108,7 +138,8 @@ class MainActivity : ComponentActivity() {
 private fun HomeScreen(
     projects: List<ResearchProject>,
     onNewPaper: () -> Unit,
-    onOpenModule: (String) -> Unit
+    onOpenModule: (String) -> Unit,
+    onOpenProject: (Long) -> Unit
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Am I Scholar") }) }) { padding ->
         LazyColumn(
@@ -137,6 +168,7 @@ private fun HomeScreen(
                             "${project.discipline} • ${project.citationStyle}",
                             style = MaterialTheme.typography.labelMedium
                         )
+                        OutlinedButton(onClick = { onOpenProject(project.id) }) { Text("Edit project") }
                     }
                 }
             }
@@ -242,6 +274,63 @@ private fun ModuleScreen(title: String, description: String, onBack: () -> Unit)
             Text("This screen is a navigation placeholder. The feature is not implemented yet.")
             Text("The app must not fabricate sources, research findings, or peer-review outcomes.")
             OutlinedButton(onClick = onBack) { Text("Back to workspace") }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProjectEditorScreen(
+    project: ResearchProject,
+    onBack: () -> Unit,
+    onSave: (ResearchProject) -> Unit,
+    onDelete: () -> Unit
+) {
+    var title by remember(project.id) { mutableStateOf(project.title) }
+    var question by remember(project.id) { mutableStateOf(project.researchQuestion) }
+    var discipline by remember(project.id) { mutableStateOf(project.discipline) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete research project?") },
+            text = { Text("This removes the project from local storage and cannot be undone.") },
+            confirmButton = {
+                Button(onClick = { showDeleteConfirmation = false; onDelete() }) { Text("Delete") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteConfirmation = false }) { Text("Cancel") }
+            }
+        )
+    }
+    Scaffold(topBar = { TopAppBar(title = { Text("Edit project") }) }) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item { OutlinedTextField(title, { title = it }, label = { Text("Title *") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(question, { question = it }, label = { Text("Research question") }, modifier = Modifier.fillMaxWidth(), minLines = 2) }
+            item { OutlinedTextField(discipline, { discipline = it }, label = { Text("Discipline") }, modifier = Modifier.fillMaxWidth()) }
+            item {
+                Text("Citation style: ${project.citationStyle}")
+                Text("Citation formatting is not implemented yet.", style = MaterialTheme.typography.bodySmall)
+            }
+            item {
+                Button(
+                    enabled = title.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onSave(project.copy(
+                            title = title.trim(),
+                            researchQuestion = question.trim(),
+                            discipline = discipline.trim().ifBlank { "Not set" },
+                            updatedAtEpochMillis = System.currentTimeMillis()
+                        ))
+                    }
+                ) { Text("Save changes") }
+            }
+            item { OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Cancel") } }
+            item { OutlinedButton(onClick = { showDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth()) { Text("Delete project") } }
         }
     }
 }
