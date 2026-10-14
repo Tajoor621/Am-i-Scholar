@@ -1,0 +1,229 @@
+package com.amischolar.app
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.amischolar.app.data.ResearchProject
+import com.amischolar.app.data.ScholarDatabase
+import com.amischolar.app.feature.ResearchModules
+import com.amischolar.app.ui.theme.AmIScholarTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val dao = ScholarDatabase.getInstance(applicationContext).researchProjectDao()
+        setContent {
+            AmIScholarTheme {
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "home") {
+                    composable("home") {
+                        val projects by dao.observeAll().collectAsState(initial = emptyList())
+                        HomeScreen(
+                            projects = projects,
+                            onNewPaper = { navController.navigate("new-paper") },
+                            onOpenModule = { navController.navigate("module/$it") }
+                        )
+                    }
+                    composable("new-paper") {
+                        NewPaperScreen(
+                            onBack = { navController.popBackStack() },
+                            onCreate = { title, question, discipline, style ->
+                                MainScope().launch {
+                                    withContext(Dispatchers.IO) {
+                                        dao.insert(ResearchProject(
+                                            title = title.trim(),
+                                            researchQuestion = question.trim(),
+                                            discipline = discipline.trim().ifBlank { "Not set" },
+                                            citationStyle = style
+                                        ))
+                                    }
+                                    navController.popBackStack()
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = "module/{route}",
+                        arguments = listOf(navArgument("route") { type = NavType.StringType })
+                    ) { entry ->
+                        val route = entry.arguments?.getString("route").orEmpty()
+                        val module = ResearchModules.all.firstOrNull { it.route == route }
+                        ModuleScreen(
+                            title = module?.title ?: "Research module",
+                            description = module?.description ?: "This module is planned for a future milestone.",
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeScreen(
+    projects: List<ResearchProject>,
+    onNewPaper: () -> Unit,
+    onOpenModule: (String) -> Unit
+) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Am I Scholar") }) }) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text("Your research workspace", style = MaterialTheme.typography.headlineSmall)
+                Text("Organise evidence, shape ideas, and keep your research verifiable.")
+                Button(onClick = onNewPaper, modifier = Modifier.fillMaxWidth()) {
+                    Text("＋  Start a new paper")
+                }
+            }
+            item {
+                Text("My papers", style = MaterialTheme.typography.titleLarge)
+                if (projects.isEmpty()) Text("No projects yet. Create one to begin your workspace.")
+            }
+            items(projects, key = { it.id }) { project ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(project.title, style = MaterialTheme.typography.titleMedium)
+                        if (project.researchQuestion.isNotBlank()) Text(project.researchQuestion)
+                        Spacer(Modifier.height(8.dp))
+                        Text("${project.discipline} • ${project.citationStyle}", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+            item {
+                Text("Research workflow", style = MaterialTheme.typography.titleLarge)
+                Text("These are staged feature entry points; not every module is implemented yet.")
+            }
+            items(ResearchModules.all, key = { it.route }) { module ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(module.title, style = MaterialTheme.typography.titleMedium)
+                            Text(module.description, style = MaterialTheme.typography.bodySmall)
+                        }
+                        OutlinedButton(onClick = { onOpenModule(module.route) }) { Text("Open") }
+                    }
+                }
+            }
+            item {
+                Text(
+                    "Integrity note: AI suggestions are not evidence. Verify every source, claim, and citation.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NewPaperScreen(
+    onBack: () -> Unit,
+    onCreate: (String, String, String, String) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var question by remember { mutableStateOf("") }
+    var discipline by remember { mutableStateOf("") }
+    var citationStyle by remember { mutableStateOf("APA") }
+    val styles = listOf("APA", "MLA", "Chicago", "IEEE", "Harvard", "Vancouver")
+
+    Scaffold(topBar = { TopAppBar(title = { Text("New paper") }) }) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Start with a working title. Refine it as your research develops.")
+            OutlinedTextField(title, { title = it }, label = { Text("Working title *") },
+                modifier = Modifier.fillMaxWidth(), singleLine = true)
+            OutlinedTextField(question, { question = it }, label = { Text("Research question (optional)") },
+                modifier = Modifier.fillMaxWidth(), minLines = 2)
+            OutlinedTextField(discipline, { discipline = it }, label = { Text("Discipline (optional)") },
+                modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Text("Citation style", style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                styles.take(3).forEach { style ->
+                    if (citationStyle == style) Button(onClick = { citationStyle = style }) { Text(style) }
+                    else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                styles.drop(3).forEach { style ->
+                    if (citationStyle == style) Button(onClick = { citationStyle = style }) { Text(style) }
+                    else OutlinedButton(onClick = { citationStyle = style }) { Text(style) }
+                }
+            }
+            Button(
+                onClick = { onCreate(title, question, discipline, citationStyle) },
+                enabled = title.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Create research project") }
+            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
+            Text("Your project is saved locally on this device.", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModuleScreen(title: String, description: String, onBack: () -> Unit) {
+    Scaffold(topBar = { TopAppBar(title = { Text(title) }) }) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(description, style = MaterialTheme.typography.bodyLarge)
+            Text("This screen is a navigation placeholder. The feature is not implemented yet.")
+            Text("The app must not fabricate sources, research findings, or peer-review outcomes.")
+            OutlinedButton(onClick = onBack) { Text("Back to workspace") }
+        }
+    }
+}
