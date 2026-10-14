@@ -39,6 +39,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.amischolar.app.feature.WorkspaceScreen
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.feature.ResearchModules
@@ -61,7 +62,8 @@ class MainActivity : ComponentActivity() {
                             projects = projects,
                             onNewPaper = { navController.navigate("new-paper") },
                             onOpenModule = { navController.navigate("module/$it") },
-                            onOpenProject = { navController.navigate("project/$it") }
+                            onOpenProject = { navController.navigate("project/$it") },
+                            onWorkspace = { navController.navigate("workspace/$it") }
                         )
                     }
                     composable(
@@ -91,6 +93,17 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                    }
+                    composable(
+                        route = "workspace/{id}",
+                        arguments = listOf(navArgument("id") { type = NavType.LongType })
+                    ) { entry ->
+                        val id = entry.arguments?.getLong("id") ?: -1L
+                        WorkspaceScreen(
+                            projectId = id,
+                            database = ScholarDatabase.getInstance(applicationContext),
+                            onBack = { navController.popBackStack() }
+                        )
                     }
                     composable("new-paper") {
                         NewPaperScreen(
@@ -139,7 +152,8 @@ private fun HomeScreen(
     projects: List<ResearchProject>,
     onNewPaper: () -> Unit,
     onOpenModule: (String) -> Unit,
-    onOpenProject: (Long) -> Unit
+    onOpenProject: (Long) -> Unit,
+    onWorkspace: (Long) -> Unit
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Am I Scholar") }) }) { padding ->
         LazyColumn(
@@ -168,7 +182,10 @@ private fun HomeScreen(
                             "${project.discipline} • ${project.citationStyle}",
                             style = MaterialTheme.typography.labelMedium
                         )
-                        OutlinedButton(onClick = { onOpenProject(project.id) }) { Text("Edit project") }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = { onWorkspace(project.id) }) { Text("Workspace") }
+                            OutlinedButton(onClick = { onOpenProject(project.id) }) { Text("Edit") }
+                        }
                     }
                 }
             }
