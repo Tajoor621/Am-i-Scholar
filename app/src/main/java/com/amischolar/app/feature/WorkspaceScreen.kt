@@ -1,9 +1,10 @@
 package com.amischolar.app.feature
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -40,7 +41,6 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     var verified by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf("") }
     var exportContent by remember { mutableStateOf("") }
-    var exportType by remember { mutableStateOf("text/markdown") }
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) {
             scope.launch(Dispatchers.IO) {
@@ -80,7 +80,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             onDismissRequest = { editor = "" },
             title = { Text(if (editor == "SOURCE") "Source record" else "Research "+editor.lowercase()) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(title, { title = it }, label = { Text("Title *") }, modifier = Modifier.fillMaxWidth())
                     if (editor == "SOURCE") {
                         OutlinedTextField(authors, { authors = it }, label = { Text("Authors (semicolon-separated)") })
