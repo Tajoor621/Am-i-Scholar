@@ -194,6 +194,16 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     exportContent = sources.joinToString("\n") { CitationFormatter.ris(it) }
                     exportLauncher.launch("am-i-scholar-references-"+projectId+".ris")
                 }) { Text("Export RIS") }
+                OutlinedButton(onClick = {
+                    fun csv(value: String) = "\"" + value.replace("\"", "\"\"").replace("\n", " ") + "\""
+                    exportContent = buildString {
+                        appendLine("Title,Authors,Year,DOI or URL,Publication,Evidence notes,User verified")
+                        sources.forEach { source ->
+                            appendLine(listOf(source.title,source.authors,source.year,source.doiOrUrl,source.publication,source.evidenceNotes,source.verified.toString()).joinToString(",") { csv(it) })
+                        }
+                    }
+                    exportLauncher.launch("am-i-scholar-evidence-"+projectId+".csv")
+                }) { Text("Export evidence CSV") }
             }
             item { Text("Integrity: Never treat AI output as evidence. Check original sources and disclose AI assistance when required.", style = MaterialTheme.typography.bodySmall) }
         }

@@ -306,6 +306,7 @@ private fun ProjectEditorScreen(
     var title by remember(project.id) { mutableStateOf(project.title) }
     var question by remember(project.id) { mutableStateOf(project.researchQuestion) }
     var discipline by remember(project.id) { mutableStateOf(project.discipline) }
+    var citationStyle by remember(project.id) { mutableStateOf(project.citationStyle) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     if (showDeleteConfirmation) {
         AlertDialog(
@@ -329,8 +330,9 @@ private fun ProjectEditorScreen(
             item { OutlinedTextField(question, { question = it }, label = { Text("Research question") }, modifier = Modifier.fillMaxWidth(), minLines = 2) }
             item { OutlinedTextField(discipline, { discipline = it }, label = { Text("Discipline") }, modifier = Modifier.fillMaxWidth()) }
             item {
-                Text("Citation style: ${project.citationStyle}")
-                Text("Citation formatting is not implemented yet.", style = MaterialTheme.typography.bodySmall)
+                Text("Citation style", style = MaterialTheme.typography.titleSmall)
+                CitationStyleSelector(citationStyle, { citationStyle = it })
+                Text("Bibliography formatting is a draft and must be checked.", style = MaterialTheme.typography.bodySmall)
             }
             item {
                 Button(
@@ -341,6 +343,7 @@ private fun ProjectEditorScreen(
                             title = title.trim(),
                             researchQuestion = question.trim(),
                             discipline = discipline.trim().ifBlank { "Not set" },
+                            citationStyle = citationStyle,
                             updatedAtEpochMillis = System.currentTimeMillis()
                         ))
                     }
@@ -348,6 +351,24 @@ private fun ProjectEditorScreen(
             }
             item { OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Cancel") } }
             item { OutlinedButton(onClick = { showDeleteConfirmation = true }, modifier = Modifier.fillMaxWidth()) { Text("Delete project") } }
+        }
+    }
+}
+
+@Composable
+private fun CitationStyleSelector(value: String, onSelect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf("APA", "MLA", "Chicago").forEach { style ->
+            Row {
+                androidx.compose.material3.RadioButton(selected = value == style, onClick = { onSelect(style) })
+                Text(style, modifier = Modifier.padding(top = 12.dp))
+            }
+        }
+        listOf("IEEE", "Harvard", "Vancouver").forEach { style ->
+            Row {
+                androidx.compose.material3.RadioButton(selected = value == style, onClick = { onSelect(style) })
+                Text(style, modifier = Modifier.padding(top = 12.dp))
+            }
         }
     }
 }
