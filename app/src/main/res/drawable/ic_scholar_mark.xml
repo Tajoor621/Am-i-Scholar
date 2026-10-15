@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#071A30" android:pathData="M0,0h108v108h-108z"/>
+    <!-- Open research book: a compact, legible mark for small launchers. -->
+    <path android:fillColor="#F4C568" android:pathData="M15,36 L42,30 Q51,30 54,38 Q57,30 66,30 L93,36 L93,76 L66,70 Q58,70 54,79 Q50,70 42,70 L15,76 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M21,41 L42,36 Q49,36 51,43 L51,69 Q47,64 41,64 L21,68 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M57,43 Q61,36 66,36 L87,41 L87,68 L67,64 Q61,64 57,69 Z"/>
+    <path android:fillColor="#0E82C7" android:pathData="M54,39 L57,43 L57,69 L54,75 L51,69 L51,43 Z"/>
+    <!-- Academic cap, readable without any tiny text. -->
+    <path android:fillColor="#F4C568" android:pathData="M26,28 L54,16 L82,28 L54,40 Z"/>
+    <path android:fillColor="#E3A944" android:pathData="M38,35 L38,43 Q54,53 70,43 L70,35 L54,42 Z"/>
+    <path android:strokeColor="#F4C568" android:strokeWidth="2.5" android:fillColor="@android:color/transparent" android:pathData="M81,28 L81,45"/>
+    <path android:fillColor="#F4C568" android:pathData="M78,46 a3,3 0,1 0,6 0 a3,3 0,1 0,-6 0"/>
+</vector>
