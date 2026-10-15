@@ -1,5 +1,6 @@
 package com.amischolar.app.feature
 
+import androidx.room.withTransaction
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -64,6 +65,55 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     val pdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
         if (uri != null) scope.launch(Dispatchers.IO) {
             runCatching { exportBytes?.let { DocumentExporter.save(context, uri, it) } }
+        }
+    }
+    var backupStatus by remember { mutableStateOf("") }
+    val backupExport = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) scope.launch {
+            try {
+                val bytes = withContext(Dispatchers.Default) {
+                    ProjectBackup.encode(ProjectBackup.Snapshot(
+                        requireNotNull(project) { "Project unavailable" }, notes, sources
+                    ))
+                }
+                withContext(Dispatchers.IO) { DocumentExporter.save(context, uri, bytes) }
+                backupStatus = "Project backup saved. Keep this file in a safe location."
+            } catch (e: Exception) { backupStatus = "Backup failed: " + (e.message ?: "Unknown error") }
+        }
+    }
+    val backupImport = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) scope.launch {
+            try {
+                val snapshot = withContext(Dispatchers.IO) {
+                    val bytes = context.contentResolver.openInputStream(uri)?.use {
+                        val output = java.io.ByteArrayOutputStream()
+                        val chunk = ByteArray(8192)
+                        var total = 0
+                        while (true) {
+                            val count = it.read(chunk)
+                            if (count < 0) break
+                            total += count
+                            require(total <= ProjectBackup.MAX_BYTES) { "Backup exceeds size limit" }
+                            output.write(chunk, 0, count)
+                        }
+                        output.toByteArray()
+                    } ?: error("Could not open backup")
+                    ProjectBackup.decode(bytes)
+                }
+                val newId = withContext(Dispatchers.IO) {
+                    database.withTransaction {
+                        val id = projectDao.insert(snapshot.project.copy(id = 0))
+                        snapshot.notes.forEach { dao.insertNote(it.copy(id = 0, projectId = id)) }
+                        snapshot.sources.forEach { dao.insertSource(it.copy(id = 0, projectId = id)) }
+                        id
+                    }
+                }
+                backupStatus = "Restored as a separate project (ID $newId). Return to My papers to open it."
+            } catch (e: Exception) { backupStatus = "Restore failed; no partial project saved: " + (e.message ?: "Invalid backup") }
         }
     }
     fun startNote(note: ResearchNote? = null, kind: String = "NOTE") {
@@ -158,6 +208,15 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
         ) {
             item {
                 Text("Local-first research workspace", style = MaterialTheme.typography.titleLarge)
+                Text("Project backup and recovery", style = MaterialTheme.typography.titleMedium)
+                OutlinedButton(enabled = project != null, onClick = {
+                    backupExport.launch("am-i-scholar-project-$projectId.json")
+                }) { Text("Export complete project backup") }
+                OutlinedButton(onClick = { backupImport.launch(arrayOf("application/json", "*/*")) }) {
+                    Text("Restore backup as a new project")
+                }
+                if (backupStatus.isNotBlank()) Text(backupStatus)
+
                 ResearchModules.all.firstOrNull { it.route == activeModule }?.let { module ->
                     Text(module.title, style = MaterialTheme.typography.titleMedium)
                     Text(module.description)
