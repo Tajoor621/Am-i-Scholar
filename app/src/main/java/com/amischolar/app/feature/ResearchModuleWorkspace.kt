@@ -103,7 +103,34 @@ fun ResearchModuleWorkspace(
                 ResearchPlanner.questionChecks(project?.researchQuestion.orEmpty()).forEach {
                     Text((if (it.passed) "✓ " else "Needs work: ") + it.name + " — " + it.guidance)
                 }
+                ResearchAnalysis.topicFeasibility(project?.researchQuestion.orEmpty(), sources).forEach { Text("• " + it) }
                 Text("Record alternative questions below; edit the final project question in the main workspace.")
+            }
+            if (route == "evidence-matrix") item {
+                Text("Evidence traceability", style = MaterialTheme.typography.titleMedium)
+                ResearchAnalysis.evidenceWarnings(ResearchAnalysis.evidenceRows(notes), sources).forEach { Text("• " + it) }
+            }
+            if (route == "outline-architect") item {
+                Text("Outline structure and source links", style = MaterialTheme.typography.titleMedium)
+                notes.filter { it.kind == "OUTLINE" }.forEach { note ->
+                    Text(note.title)
+                    ResearchAnalysis.outlineWarnings(note.content, sources).forEach { Text("• " + it) }
+                }
+            }
+            if (route == "revision-response") item {
+                Text("Revision tracking", style = MaterialTheme.typography.titleMedium)
+                val revisions = notes.filter { it.kind == "REVISION" }.sortedBy { it.updatedAtEpochMillis }
+                if (revisions.size >= 2) {
+                    val changes = ResearchAnalysis.difference(revisions[revisions.size - 2].content, revisions.last().content)
+                    Text("Changed lines: ${changes.added.size} added, ${changes.removed.size} removed")
+                    changes.added.take(5).forEach { Text("+ " + it) }
+                    changes.removed.take(5).forEach { Text("− " + it) }
+                } else Text("Save at least two revision records to compare their text.")
+            }
+            if (route == "submission-kit") item {
+                Text("Journal due diligence", style = MaterialTheme.typography.titleMedium)
+                ResearchAnalysis.journalChecklist("", "").forEach { Text("• " + it) }
+                Text("Enter the target journal and official author-guidelines URL in a submission record.")
             }
             if (route == "literature-radar") item { LiteratureSearchPanel(projectId, dao) }
             if (route == "citation-center") item {
