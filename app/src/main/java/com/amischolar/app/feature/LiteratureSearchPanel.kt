@@ -32,6 +32,7 @@ fun LiteratureSearchPanel(projectId: Long, dao: ResearchWorkspaceDao) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = provider == "Crossref", onClick = { provider = "Crossref" }, label = { Text("Crossref") })
             FilterChip(selected = provider == "OpenAlex", onClick = { provider = "OpenAlex" }, label = { Text("OpenAlex") })
+            FilterChip(selected = provider == "PubMed", onClick = { provider = "PubMed" }, label = { Text("PubMed") })
         }
         Button(enabled = !busy && query.isNotBlank(), onClick = {
             busy = true; error = ""; results = emptyList(); imported = emptySet()
@@ -39,6 +40,7 @@ fun LiteratureSearchPanel(projectId: Long, dao: ResearchWorkspaceDao) {
                 try {
                     results = withContext(Dispatchers.IO) {
                         if (provider == "OpenAlex") OpenAlexRepository.search(query)
+                        else if (provider == "PubMed") PubMedRepository.search(query)
                         else if (query.trim().startsWith("10.") || query.contains("doi.org/")) {
                             listOfNotNull(CrossrefRepository.resolveDoi(query))
                         } else CrossrefRepository.search(query)
