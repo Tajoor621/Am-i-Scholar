@@ -150,6 +150,12 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
         ) {
             item {
                 Text("Local-first research workspace", style = MaterialTheme.typography.titleLarge)
+                project?.researchQuestion?.let { question ->
+                    Text("Research question checks", style = MaterialTheme.typography.titleSmall)
+                    ResearchPlanner.questionChecks(question).forEach { check ->
+                        Text((if (check.passed) "✓ " else "Review: ") + check.name + " — " + check.guidance)
+                    }
+                }
                 Text("Drafts and source metadata stay on this device. Source verification is your responsibility.")
                 OutlinedButton(onClick = onBack) { Text("Back to projects") }
                 OutlinedTextField(searchQuery, { searchQuery = it }, label = { Text("Search notes and sources") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
@@ -164,6 +170,10 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { startNote(kind = "REVISION") }) { Text("Revision log") }
                     OutlinedButton(onClick = { startNote(kind = "REVIEW") }) { Text("Reviewer response") }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { startNote(kind = "EVIDENCE"); body = ResearchPlanner.evidenceTemplate() }) { Text("Evidence matrix") }
+                    OutlinedButton(onClick = { startNote(kind = "REVIEW"); body = ResearchPlanner.responseTemplate() }) { Text("Response template") }
                 }
             }
             items(filteredNotes, key = { "note"+it.id }) { note ->
