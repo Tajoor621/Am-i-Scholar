@@ -41,6 +41,9 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     var verified by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf("") }
     var exportContent by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredNotes = notes.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true) }
+    val filteredSources = sources.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.authors.contains(searchQuery, ignoreCase = true) || it.doiOrUrl.contains(searchQuery, ignoreCase = true) || it.evidenceNotes.contains(searchQuery, ignoreCase = true) }
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) {
             scope.launch(Dispatchers.IO) {
@@ -85,7 +88,8 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     if (editor == "SOURCE") {
                         OutlinedTextField(authors, { authors = it }, label = { Text("Authors (semicolon-separated)") })
                         OutlinedTextField(year, { year = it }, label = { Text("Publication year") })
-                        OutlinedTextField(locator, { locator = it }, label = { Text("DOI or URL") })
+                        OutlinedTextField(locator, { locator = it }, label = { Text("DOI or URL") }, isError = !SourceQuality.looksLikeDoiOrUrl(locator))
+                        if (!SourceQuality.looksLikeDoiOrUrl(locator)) Text("Use a DOI beginning 10. or an http(s) URL.", color = MaterialTheme.colorScheme.error)
                         OutlinedTextField(publication, { publication = it }, label = { Text("Journal / publisher") })
                         OutlinedTextField(evidence, { evidence = it }, label = { Text("Evidence and limitations") })
                         Row { Checkbox(verified, { verified = it }); Text("I checked these details against the original source") }
@@ -95,7 +99,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 }
             },
             confirmButton = {
-                Button(enabled = title.isNotBlank(), onClick = {
+                Button(enabled = title.isNotBlank() && (editor != "SOURCE" || SourceQuality.looksLikeDoiOrUrl(locator)), onClick = {
                     val kind = editor
                     scope.launch(Dispatchers.IO) {
                         if (kind == "SOURCE") {
@@ -135,6 +139,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 Text("Local-first research workspace", style = MaterialTheme.typography.titleLarge)
                 Text("Drafts and source metadata stay on this device. Source verification is your responsibility.")
                 OutlinedButton(onClick = onBack) { Text("Back to projects") }
+                OutlinedTextField(searchQuery, { searchQuery = it }, label = { Text("Search notes and sources") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             }
             item {
                 Text("Writing and research notes", style = MaterialTheme.typography.titleMedium)
@@ -144,7 +149,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     Button(onClick = { startNote(kind = "DRAFT") }) { Text("Draft") }
                 }
             }
-            items(notes, key = { "note"+it.id }) { note ->
+            items(filteredNotes, key = { "note"+it.id }) { note ->
                 OutlinedCard(onClick = { startNote(note) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
                         Text(note.kind+" · "+note.title, style = MaterialTheme.typography.titleSmall)
@@ -156,12 +161,14 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 Text("Evidence and sources", style = MaterialTheme.typography.titleMedium)
                 Button(onClick = { startSource() }) { Text("Add source") }
             }
-            items(sources, key = { "source"+it.id }) { source ->
+            items(filteredSources, key = { "source"+it.id }) { source ->
                 OutlinedCard(onClick = { startSource(source) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
                         Text(source.title, style = MaterialTheme.typography.titleSmall)
-                        Text(if (source.verified) "User-checked metadata" else "Unverified metadata")
+                        Text(if (source.verified) "User-checked metadata (not independently verified)" else "Unverified metadata")
                         Text(CitationFormatter.format(source, project?.citationStyle ?: "APA"))
+                        val missing = SourceQuality.missingFields(source)
+                        if (missing.isNotEmpty()) Text("Missing: "+missing.joinToString(", "), color = MaterialTheme.colorScheme.error)
                         if (source.evidenceNotes.isNotBlank()) Text(source.evidenceNotes)
                     }
                 }
@@ -169,6 +176,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             item {
                 Text("Export", style = MaterialTheme.typography.titleMedium)
                 Text("Bibliography entries are simplified drafts, not publication-ready CSL citations.")
+                Text("Source completeness: "+sources.count { SourceQuality.missingFields(it).isEmpty() }+"/"+sources.size+" records have required metadata.")
                 Button(onClick = {
                     val p = project
                     exportContent = buildString {
