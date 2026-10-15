@@ -191,6 +191,18 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 }
             }
             item {
+                Text("Submission readiness · simulated checklist", style = MaterialTheme.typography.titleMedium)
+                Text("Not a real peer review or journal recommendation.")
+                SubmissionAudit.inspect(project, notes, sources).forEach { check ->
+                    Text((if (check.passed) "✓ " else "Needs review: ")+check.area+" — "+check.guidance, style = MaterialTheme.typography.bodySmall)
+                }
+                OutlinedButton(onClick = {
+                    exportBytes = null
+                    exportContent = SubmissionAudit.report(project, notes, sources)
+                    exportLauncher.launch("am-i-scholar-submission-checklist-"+projectId+".txt")
+                }) { Text("Export submission checklist") }
+            }
+            item {
                 Text("Export", style = MaterialTheme.typography.titleMedium)
                 Text("Bibliography entries are simplified drafts, not publication-ready CSL citations.")
                 Text("Source completeness: "+sources.count { SourceQuality.missingFields(it).isEmpty() }+"/"+sources.size+" records have required metadata.")
