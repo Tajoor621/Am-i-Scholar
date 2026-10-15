@@ -157,6 +157,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     }
                 }
             }
+            item { LiteratureSearchPanel(projectId, dao) }
             item {
                 Text("Evidence and sources", style = MaterialTheme.typography.titleMedium)
                 Button(onClick = { startSource() }) { Text("Add source") }
