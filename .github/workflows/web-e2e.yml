@@ -1,0 +1,22 @@
+name: Web browser E2E
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test tooling
+        run: |
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+      - name: Start static site and test mobile workflows
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 &
+          npx playwright test tests/web-e2e.spec.cjs
