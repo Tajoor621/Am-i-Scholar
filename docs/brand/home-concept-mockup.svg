@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="Concept UI illustration of Am I Scholar home dashboard, not an actual app screenshot">
+<rect width="900" height="1600" fill="#071A30"/>
+<text x="65" y="105" fill="#F4C568" font-family="sans-serif" font-size="64" font-weight="bold">Am I Scholar</text>
+<text x="65" y="155" fill="#BFD9E9" font-family="sans-serif" font-size="27">Offline-first research workspace</text>
+<rect x="48" y="220" width="804" height="210" rx="28" fill="#123658"/>
+<text x="90" y="294" fill="#FFFFFF" font-family="sans-serif" font-size="40">Research • Write • Cite</text>
+<text x="90" y="354" fill="#AEE6E6" font-family="sans-serif" font-size="27">Local projects • Optional free searches</text>
+<rect x="48" y="482" width="385" height="230" rx="24" fill="#0866B2"/>
+<rect x="466" y="482" width="385" height="230" rx="24" fill="#078B80"/>
+<text x="80" y="570" fill="#FFFFFF" font-family="sans-serif" font-size="37">Literature Radar</text>
+<text x="500" y="570" fill="#FFFFFF" font-family="sans-serif" font-size="37">My Projects</text>
+<text x="80" y="625" fill="#FFFFFF" font-family="sans-serif" font-size="25">Crossref • OpenAlex</text>
+<text x="500" y="625" fill="#FFFFFF" font-family="sans-serif" font-size="25">Notes • Drafts</text>
+<rect x="48" y="744" width="385" height="230" rx="24" fill="#8C6020"/>
+<rect x="466" y="744" width="385" height="230" rx="24" fill="#4E499E"/>
+<text x="80" y="832" fill="#FFFFFF" font-family="sans-serif" font-size="37">Citation Center</text>
+<text x="500" y="832" fill="#FFFFFF" font-family="sans-serif" font-size="37">Writing Coach</text>
+<text x="80" y="887" fill="#FFFFFF" font-family="sans-serif" font-size="25">Draft bibliography</text>
+<text x="500" y="887" fill="#FFFFFF" font-family="sans-serif" font-size="25">Offline checks</text>
+<rect x="48" y="1006" width="804" height="230" rx="24" fill="#123658"/>
+<text x="85" y="1090" fill="#FFFFFF" font-family="sans-serif" font-size="40">Export research</text>
+<text x="85" y="1152" fill="#BFD9E9" font-family="sans-serif" font-size="28">Markdown • BibTeX • RIS • DOCX • PDF</text>
+<text x="48" y="1370" fill="#F4C568" font-family="sans-serif" font-size="31">CONCEPT MOCKUP — NOT A REAL SCREENSHOT</text>
+<text x="48" y="1430" fill="#BFD9E9" font-family="sans-serif" font-size="24">UI and feature availability may differ in the built APK.</text>
+</svg>

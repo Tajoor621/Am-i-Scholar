@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Am I Scholar logo: open book and graduation cap">
+<rect width="512" height="512" rx="108" fill="#071A30"/>
+<path d="M72 194 L203 166 Q238 166 256 203 Q274 166 309 166 L440 194 L440 369 L312 340 Q274 339 256 383 Q238 339 200 340 L72 369 Z" fill="#F4C568"/>
+<path d="M99 216 L199 191 Q228 190 241 224 L241 344 Q221 316 195 316 L99 334 Z" fill="#FFFFFF"/>
+<path d="M271 224 Q284 190 313 191 L413 216 L413 334 L317 316 Q291 316 271 344 Z" fill="#FFFFFF"/>
+<path d="M256 201 L271 224 L271 344 L256 367 L241 344 L241 224 Z" fill="#0E82C7"/>
+<path d="M132 128 L256 72 L380 128 L256 181 Z" fill="#F4C568"/>
+<path d="M183 157 L183 191 Q256 232 329 191 L329 157 L256 188 Z" fill="#E3A944"/>
+<path d="M377 128 L377 202" stroke="#F4C568" stroke-width="11" stroke-linecap="round"/>
+<circle cx="377" cy="213" r="13" fill="#F4C568"/>
+</svg>
