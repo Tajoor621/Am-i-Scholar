@@ -106,6 +106,22 @@ class MainActivity : ComponentActivity() {
                             onBack = { navController.popBackStack() }
                         )
                     }
+                    composable(
+                        route = "workspace/{id}/{module}",
+                        arguments = listOf(
+                            navArgument("id") { type = NavType.LongType },
+                            navArgument("module") { type = NavType.StringType }
+                        )
+                    ) { entry ->
+                        val id = entry.arguments?.getLong("id") ?: -1L
+                        val module = entry.arguments?.getString("module").orEmpty()
+                        WorkspaceScreen(
+                            projectId = id,
+                            database = ScholarDatabase.getInstance(applicationContext),
+                            onBack = { navController.popBackStack() },
+                            activeModule = module
+                        )
+                    }
                     composable("new-paper") {
                         NewPaperScreen(
                             onBack = { navController.popBackStack() },

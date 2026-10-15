@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Unit) {
+fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Unit, activeModule: String = "") {
     val dao = database.researchWorkspaceDao()
     val projectDao = database.researchProjectDao()
     var project by remember(projectId) { mutableStateOf<ResearchProject?>(null) }
@@ -158,6 +158,24 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
         ) {
             item {
                 Text("Local-first research workspace", style = MaterialTheme.typography.titleLarge)
+                ResearchModules.all.firstOrNull { it.route == activeModule }?.let { module ->
+                    Text(module.title, style = MaterialTheme.typography.titleMedium)
+                    Text(module.description)
+                    when (activeModule) {
+                        "topic-lab" -> Text("Edit the project's research question to refine its scope; the checks below use saved project data.")
+                        "literature-radar" -> Text("Search free research metadata providers below, then save sources.")
+                        "evidence-matrix" -> Button(onClick = { startNote(kind = "EVIDENCE"); body = ResearchPlanner.evidenceTemplate() }) { Text("Create evidence record") }
+                        "outline-architect" -> Button(onClick = { startNote(kind = "OUTLINE") }) { Text("Create outline") }
+                        "draft-studio" -> Button(onClick = { startNote(kind = "DRAFT") }) { Text("Create draft") }
+                        "style-coach" -> Text("Open a draft below to see local writing feedback.")
+                        "citation-center" -> Text("Check metadata and export draft references below. Verify before publication.")
+                        "integrity" -> Text("Use source verification and readiness checks below; no plagiarism database is provided.")
+                        "review-simulator" -> Button(onClick = { startNote(kind = "REVIEW"); body = ResearchPlanner.responseTemplate() }) { Text("Create simulated review response") }
+                        "submission-kit" -> Text("Submission readiness checks are below. Journal matching is not automated.")
+                        "revision-response" -> Button(onClick = { startNote(kind = "REVISION") }) { Text("Create revision log") }
+                        "archive" -> Text("Local notes and sources appear below. Export a separate copy for preservation.")
+                    }
+                }
                 project?.researchQuestion?.let { question ->
                     Text("Research question checks", style = MaterialTheme.typography.titleSmall)
                     ResearchPlanner.questionChecks(question).forEach { check ->
