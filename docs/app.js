@@ -64,7 +64,19 @@ function renderLiteratureSearch(){
  data.records.push({id:uid(),projectId,moduleId:"literature-radar",title:entry.title,content:entry.content,updated:Date.now()});save();renderRecords();notify("Source imported as unverified metadata.");
  }));results.append(card)})}catch(e){results.replaceChildren(el("p","Search unavailable: "+e.message+". Check connectivity or provider CORS policy."))}}, "secondary"));root.append(row,results);
 }
-function renderTool(){const panel=$("toolPanel"),actions=$("toolActions"),p=project(),rows=recordsFor();panel.replaceChildren();actions.replaceChildren();$("liveSearch").classList.add("hidden");$("liveSearch").replaceChildren();const template=(title,content)=>actions.append(button("Use structured template",()=>addTemplate(title,content)));
+function renderModuleHelp(){
+ const box=$("moduleHelp"),help=ScholarHelp.help[moduleId];if(!help)return;
+ box.replaceChildren();
+ const row=el("div","","row");row.append(el("h2","How to use "+MODULES.find(m=>m[0]===moduleId)?.[1]),button("Close help",()=>box.classList.add("hidden"),"secondary"));box.append(row);
+ box.append(el("p",help.goal));
+ const heading=el("h3","Step-by-step procedure"),list=document.createElement("ol");help.steps.forEach(step=>list.append(el("li",step)));box.append(heading,list);
+ box.append(el("h3","Practical example"),el("p",help.example));
+ box.append(el("h3","Important accuracy notes"));const warnings=document.createElement("ul");help.cautions.forEach(t=>warnings.append(el("li",t)));box.append(warnings);
+ box.append(el("h3","Suggestions for your current research"));const tips=document.createElement("ul");ScholarHelp.feedback(moduleId,project(),recordsFor()).forEach(t=>tips.append(el("li",t)));box.append(tips);
+ box.append(el("p","Suggestions are based on visible project fields and saved records, not external fact checking or scientific peer review.","muted"));
+ box.classList.remove("hidden");box.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderTool(){const panel=$("toolPanel"),actions=$("toolActions"),p=project(),rows=recordsFor();panel.replaceChildren();actions.replaceChildren();$("moduleHelp").classList.add("hidden");actions.append(button("❔ Help & research guidance",renderModuleHelp,"secondary"));$("liveSearch").classList.add("hidden");$("liveSearch").replaceChildren();const template=(title,content)=>actions.append(button("Use structured template",()=>addTemplate(title,content)));
 switch(moduleId){
 case "topic-lab":{toolLine(panel,"Research question: "+(p.question||"Not set — edit your paper to add one."));const q=(p.question||"").trim();analysisBox(panel,"Question quality checks",[!q?"Missing research question":null,q&&q.split(/\s+/).length<8?"Question may be too broad or short":null,q&&!/[?]$/.test(q)?"Consider phrasing the question explicitly":null,!/\b(how|what|why|whether|which|does|do|is|are|can|to what extent)\b/i.test(q)?"Specify a measurable outcome or explanatory relationship":null].filter(Boolean));actions.append(button("Edit research question",editPaper));template("Feasibility assessment","Population or system:\nResearch gap:\nVariables / outcomes:\nMethodology:\nData access:\nEthics considerations:\nTimeline and constraints:\nFeasibility decision:");break}
 case "literature-radar":{toolLine(panel,"Search live scholarly metadata through Crossref or OpenAlex when online. Results are metadata only: verify original papers before using them.");renderLiteratureSearch();template("Source title — author and year","Authors:\nYear:\nDOI or official URL:\nJournal / repository:\nSearch terms:\nDate accessed:\nAbstract summary (your own words):\nRelevance:\nVerified against original: No");analysisBox(panel,"Search planning",["Define keywords and synonyms","Record inclusion and exclusion criteria","Check publication date and study type","Verify every DOI against the original publication"]);break}

@@ -56,3 +56,21 @@ test("draft tools export manuscript and citation metadata",async({page})=>{
  const [csl]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export CSL-JSON metadata"}).click()]);
  expect(csl.suggestedFilename()).toBe("am-i-scholar-csl-data.json");
 });
+
+test("all twelve research modules expose contextual help and research-specific feedback",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("Help workflow test");
+ await page.locator("#projectQuestion").fill("How do bacterial chromosomes respond to stress?");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ const names=["Topic Lab","Literature Radar","Evidence Matrix","Outline Architect","Draft Studio","Style Coach","Citation Center","Originality & Integrity","Review Simulator","Submission Kit","Revision & Response","Archive & Reproducibility"];
+ for(const name of names){
+  await page.locator("#allModules").getByRole("button",{name:"Open "+name}).click();
+  await page.getByRole("button",{name:"Help & research guidance"}).click();
+  await expect(page.locator("#moduleHelp")).toBeVisible();
+  await expect(page.locator("#moduleHelp")).toContainText("Step-by-step procedure");
+  await expect(page.locator("#moduleHelp")).toContainText("Suggestions for your current research");
+  await expect(page.locator("#moduleHelp ol li")).toHaveCount(4);
+  await page.getByRole("button",{name:"← Modules"}).click();
+ }
+});
