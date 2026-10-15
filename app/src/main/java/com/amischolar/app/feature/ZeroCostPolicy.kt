@@ -14,7 +14,7 @@ object ZeroCostPolicy {
 
     val permittedMetadataHosts = setOf(
         "api.crossref.org", "api.openalex.org", "eutils.ncbi.nlm.nih.gov",
-        "export.arxiv.org"
+        "export.arxiv.org", "doaj.org"
     )
 
     fun isPermittedResearchEndpoint(rawUrl: String): Boolean = try {
