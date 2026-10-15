@@ -36,6 +36,8 @@ fun LiteratureSearchPanel(projectId: Long, dao: ResearchWorkspaceDao) {
           }
           Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = provider == "PubMed", onClick = { provider = "PubMed" }, label = { Text("PubMed") })
+            FilterChip(selected = provider == "arXiv", onClick = { provider = "arXiv" }, label = { Text("arXiv") })
+          }
         }
         Button(enabled = !busy && query.isNotBlank(), onClick = {
             busy = true; error = ""; results = emptyList(); imported = emptySet()
