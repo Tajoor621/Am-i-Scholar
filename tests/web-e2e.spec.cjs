@@ -29,3 +29,30 @@ test("PWA exposes a manifest and registers a service worker",async({page})=>{
  const response=await page.request.get("http://127.0.0.1:8000/sw.js");
  expect(response.ok()).toBeTruthy();
 });
+
+test("live literature metadata search imports a source without claiming verification",async({page})=>{
+ await page.route("https://api.crossref.org/works?*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({message:{items:[{title:["Verified metadata test"],author:[{given:"Ada",family:"Lovelace"}],DOI:"10.1000/test",published:{"date-parts":[[2025]]},"container-title":["Example Journal"]}]}})}));
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("Research search test");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("chromosome organization");
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults")).toContainText("Verified metadata test");
+ await page.getByRole("button",{name:"Import metadata"}).click();
+ await expect(page.locator("#recordList")).toContainText("Verified metadata test");
+ await expect(page.locator("#recordList")).toContainText("Verified against original: No");
+});
+test("draft tools export manuscript and citation metadata",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();await page.locator("#projectTitle").fill("Export test");await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Draft Studio"}).click();
+ await page.getByRole("button",{name:"Use structured template"}).click();await page.locator("#recordTitle").fill("Draft 1");await page.getByRole("button",{name:"Save record"}).click();
+ const [download]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export Markdown"}).click()]);
+ expect(download.suggestedFilename()).toBe("am-i-scholar-manuscript.md");
+ await page.getByRole("button",{name:"← Modules"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ const [csl]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export CSL-JSON metadata"}).click()]);
+ expect(csl.suggestedFilename()).toBe("am-i-scholar-csl-data.json");
+});
