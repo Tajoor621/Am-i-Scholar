@@ -42,7 +42,7 @@ object CrossrefRepository {
     }
 
     private fun request(endpoint: String): JSONObject {
-        val connection = URL(endpoint).openConnection() as HttpURLConnection
+        val connection = ResearchHttp.open(endpoint)
         connection.connectTimeout = 12000
         connection.readTimeout = 12000
         connection.setRequestProperty("Accept", "application/json")

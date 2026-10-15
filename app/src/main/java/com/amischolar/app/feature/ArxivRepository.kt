@@ -11,7 +11,7 @@ object ArxivRepository {
     fun search(query: String): List<CrossrefRepository.Record> {
         require(query.isNotBlank()) { "Search terms are required" }
         val encoded = URLEncoder.encode(query.trim(), "UTF-8")
-        val connection = URL("https://export.arxiv.org/api/query?search_query=all:$encoded&start=0&max_results=10").openConnection() as HttpURLConnection
+        val connection = ResearchHttp.open("https://export.arxiv.org/api/query?search_query=all:$encoded&start=0&max_results=10")
         connection.connectTimeout = 15000
         connection.readTimeout = 15000
         connection.setRequestProperty("Accept", "application/atom+xml")

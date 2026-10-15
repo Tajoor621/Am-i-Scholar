@@ -13,7 +13,7 @@ object OpenAlexRepository {
     fun search(query: String): List<CrossrefRepository.Record> {
         require(query.isNotBlank()) { "Search terms are required" }
         val encoded = URLEncoder.encode(query.trim(), "UTF-8")
-        val connection = URL("https://api.openalex.org/works?search=$encoded&per-page=10").openConnection() as HttpURLConnection
+        val connection = ResearchHttp.open("https://api.openalex.org/works?search=$encoded&per-page=10")
         connection.connectTimeout = 12000
         connection.readTimeout = 12000
         connection.setRequestProperty("Accept", "application/json")
