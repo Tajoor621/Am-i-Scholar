@@ -40,6 +40,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.amischolar.app.feature.WorkspaceScreen
+import com.amischolar.app.feature.ResearchModuleWorkspace
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.feature.ZeroCostPolicy
@@ -115,11 +116,12 @@ class MainActivity : ComponentActivity() {
                     ) { entry ->
                         val id = entry.arguments?.getLong("id") ?: -1L
                         val module = entry.arguments?.getString("module").orEmpty()
-                        WorkspaceScreen(
+                        ResearchModuleWorkspace(
                             projectId = id,
+                            route = module,
                             database = ScholarDatabase.getInstance(applicationContext),
                             onBack = { navController.popBackStack() },
-                            activeModule = module
+                            onFullWorkspace = { navController.navigate("workspace/$id") }
                         )
                     }
                     composable("new-paper") {
