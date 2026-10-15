@@ -42,6 +42,7 @@ import androidx.navigation.navArgument
 import com.amischolar.app.feature.WorkspaceScreen
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
+import com.amischolar.app.feature.ZeroCostPolicy
 import com.amischolar.app.feature.ResearchModules
 import com.amischolar.app.ui.theme.AmIScholarTheme
 import kotlinx.coroutines.Dispatchers
@@ -164,6 +165,7 @@ private fun HomeScreen(
             item {
                 Text("Your research workspace", style = MaterialTheme.typography.headlineSmall)
                 Text("Organise evidence, shape ideas, and keep your research verifiable.")
+                Text(ZeroCostPolicy.userDisclosure(), style = MaterialTheme.typography.bodySmall)
                 Button(onClick = onNewPaper, modifier = Modifier.fillMaxWidth()) {
                     Text("＋  Start a new paper")
                 }
