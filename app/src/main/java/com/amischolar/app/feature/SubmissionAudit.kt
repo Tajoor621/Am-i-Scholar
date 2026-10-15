@@ -19,7 +19,7 @@ object SubmissionAudit {
             Check("Complete metadata", sources.isNotEmpty() && sources.all { SourceQuality.missingFields(it).isEmpty() }, "Fill all required reference fields."),
             Check("Source checking", sources.isNotEmpty() && sources.all { it.verified }, "Check every reference against its original publication."),
             Check("Evidence notes", sources.isNotEmpty() && sources.all { it.evidenceNotes.isNotBlank() }, "Record what each source supports and its limitations."),
-            Check("Claims and language", !Regex("\\b(proves|always|never|everyone)\\b", RegexOption.IGNORE_CASE).containsMatchIn(draftText), "Review absolute claims and confirm evidence supports them.")
+            Check("Claims and language", draftText.isNotBlank() && !Regex("\\b(proves|always|never|everyone)\\b", RegexOption.IGNORE_CASE).containsMatchIn(draftText), "Review absolute claims and confirm evidence supports them.")
         )
     }
 
