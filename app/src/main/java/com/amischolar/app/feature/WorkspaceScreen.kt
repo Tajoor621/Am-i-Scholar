@@ -161,6 +161,10 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     Button(onClick = { startNote(kind = "OUTLINE") }) { Text("Outline") }
                     Button(onClick = { startNote(kind = "DRAFT") }) { Text("Draft") }
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { startNote(kind = "REVISION") }) { Text("Revision log") }
+                    OutlinedButton(onClick = { startNote(kind = "REVIEW") }) { Text("Reviewer response") }
+                }
             }
             items(filteredNotes, key = { "note"+it.id }) { note ->
                 OutlinedCard(onClick = { startNote(note) }, modifier = Modifier.fillMaxWidth()) {
