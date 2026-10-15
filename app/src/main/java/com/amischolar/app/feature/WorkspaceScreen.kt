@@ -41,13 +41,14 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     var verified by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf("") }
     var exportContent by remember { mutableStateOf("") }
+    var exportBytes by remember { mutableStateOf<ByteArray?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     val filteredNotes = notes.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true) }
     val filteredSources = sources.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.authors.contains(searchQuery, ignoreCase = true) || it.doiOrUrl.contains(searchQuery, ignoreCase = true) || it.evidenceNotes.contains(searchQuery, ignoreCase = true) }
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri != null) {
             scope.launch(Dispatchers.IO) {
-                runCatching { context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(exportContent) } }
+                runCatching { DocumentExporter.save(context, uri, exportContent.toByteArray(Charsets.UTF_8)) }
             }
         }
     }
