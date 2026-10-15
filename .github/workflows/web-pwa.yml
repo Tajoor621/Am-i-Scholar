@@ -1,0 +1,15 @@
+name: Web PWA verification
+on:
+  push:
+    branches: [main, repair/phase-1-2-build-reliability]
+  pull_request:
+jobs:
+  web-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript and web assets
+        run: node tests/web-smoke.cjs
