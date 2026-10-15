@@ -42,6 +42,8 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     var deleteTarget by remember { mutableStateOf("") }
     var exportContent by remember { mutableStateOf("") }
     var exportBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var doiCheckMessage by remember { mutableStateOf("") }
+    var checkingDoi by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val filteredNotes = notes.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true) }
     val filteredSources = sources.filter { searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.authors.contains(searchQuery, ignoreCase = true) || it.doiOrUrl.contains(searchQuery, ignoreCase = true) || it.evidenceNotes.contains(searchQuery, ignoreCase = true) }
@@ -176,6 +178,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             }
             item { LiteratureSearchPanel(projectId, dao) }
             item {
+                if (doiCheckMessage.isNotBlank()) Text(doiCheckMessage)
                 Text("Evidence and sources", style = MaterialTheme.typography.titleMedium)
                 Button(onClick = { startSource() }) { Text("Add source") }
             }
@@ -188,6 +191,20 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                         val missing = SourceQuality.missingFields(source)
                         if (missing.isNotEmpty()) Text("Missing: "+missing.joinToString(", "), color = MaterialTheme.colorScheme.error)
                         if (source.evidenceNotes.isNotBlank()) Text(source.evidenceNotes)
+                        if (source.doiOrUrl.trim().startsWith("10.") || source.doiOrUrl.contains("doi.org/")) {
+                            TextButton(enabled = !checkingDoi, onClick = {
+                                checkingDoi = true
+                                scope.launch {
+                                    try {
+                                        val result = withContext(Dispatchers.IO) { DoiMetadataVerifier.check(source) }
+                                        doiCheckMessage = source.title+": "+(if (result.metadataConsistent) "Crossref metadata consistent" else "Metadata discrepancies")+
+                                            " — "+result.warnings.joinToString("; ")
+                                    } catch (e: Exception) {
+                                        doiCheckMessage = "DOI check failed: "+(e.message ?: "network unavailable")
+                                    } finally { checkingDoi = false }
+                                }
+                            }) { Text("Compare DOI metadata") }
+                        }
                     }
                 }
             }
