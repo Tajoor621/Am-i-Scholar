@@ -154,6 +154,12 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     Column(Modifier.padding(12.dp)) {
                         Text(note.kind+" · "+note.title, style = MaterialTheme.typography.titleSmall)
                         Text(note.content.take(160), maxLines = 3)
+                        if (note.kind == "DRAFT") {
+                            Text("Local writing coach", style = MaterialTheme.typography.labelMedium)
+                            WritingCoach.review(note.content).forEach { finding ->
+                                Text(finding.label+": "+finding.advice, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                     }
                 }
             }
