@@ -206,6 +206,11 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             item {
                 Text("Export", style = MaterialTheme.typography.titleMedium)
                 Text("Bibliography entries are simplified drafts, not publication-ready CSL citations.")
+                Text("Citation audit: "+CitationAudit.inspect(sources).size+" metadata issues or review reminders.")
+                OutlinedButton(onClick = {
+                    exportContent = CitationAudit.report(sources)
+                    exportLauncher.launch("am-i-scholar-citation-audit-"+projectId+".txt")
+                }) { Text("Export citation audit") }
                 Text("Source completeness: "+sources.count { SourceQuality.missingFields(it).isEmpty() }+"/"+sources.size+" records have required metadata.")
                 Button(onClick = {
                     val p = project
