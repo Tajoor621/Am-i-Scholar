@@ -21,7 +21,10 @@ object ZeroCostPolicy {
         val uri = java.net.URI(rawUrl)
         uri.scheme.equals("https", ignoreCase = true) &&
             uri.host?.lowercase() in permittedMetadataHosts &&
-            uri.userInfo == null
+            uri.userInfo == null &&
+            uri.port == -1 &&
+            uri.fragment == null &&
+            uri.rawPath?.startsWith("/") != false
     } catch (_: Exception) { false }
 
     fun userDisclosure(): String =

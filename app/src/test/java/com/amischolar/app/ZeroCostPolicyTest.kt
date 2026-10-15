@@ -15,5 +15,8 @@ class ZeroCostPolicyTest {
   assertFalse(ZeroCostPolicy.isPermittedResearchEndpoint("http://api.crossref.org/works"))
   assertFalse(ZeroCostPolicy.isPermittedResearchEndpoint("https://api.crossref.org.evil.example/works"))
   assertFalse(ZeroCostPolicy.isPermittedResearchEndpoint("https://paid-api.example.com/v1/chat"))
+  assertFalse(ZeroCostPolicy.isPermittedResearchEndpoint("https://api.crossref.org:8443/works"))
+  assertFalse(ZeroCostPolicy.isPermittedResearchEndpoint("https://api.crossref.org/works#hidden"))
+  assertTrue(ZeroCostPolicy.isPermittedResearchEndpoint("https://doaj.org/api/search/articles/science"))
  }
 }

@@ -3,6 +3,8 @@ package com.amischolar.app.feature
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -105,7 +107,13 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                         if (!SourceQuality.looksLikeDoiOrUrl(locator)) Text("Use a DOI beginning 10. or an http(s) URL.", color = MaterialTheme.colorScheme.error)
                         OutlinedTextField(publication, { publication = it }, label = { Text("Journal / publisher") })
                         OutlinedTextField(evidence, { evidence = it }, label = { Text("Evidence and limitations") })
-                        Row { Checkbox(verified, { verified = it }); Text("I checked these details against the original source") }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().toggleable(value = verified, role = Role.Checkbox, onValueChange = { verified = it }),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Checkbox(checked = verified, onCheckedChange = null)
+                            Text("I checked these details against the original source")
+                        }
                     } else {
                         OutlinedTextField(body, { body = it }, label = { Text("Content") }, minLines = 4)
                     }
