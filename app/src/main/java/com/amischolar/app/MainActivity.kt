@@ -152,10 +152,13 @@ class MainActivity : ComponentActivity() {
                     ) { entry ->
                         val route = entry.arguments?.getString("route").orEmpty()
                         val module = ResearchModules.all.firstOrNull { it.route == route }
+                        val projects by dao.observeAll().collectAsState(initial = emptyList())
                         ModuleScreen(
                             title = module?.title ?: "Research module",
-                            description = module?.description
-                                ?: "This module is planned for a future milestone.",
+                            description = module?.description ?: "Research workspace",
+                            projects = projects,
+                            onSelectProject = { navController.navigate("workspace/$it/$route") },
+                            onCreateProject = { navController.navigate("new-paper") },
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -211,7 +214,7 @@ private fun HomeScreen(
             }
             item {
                 Text("Research workflow", style = MaterialTheme.typography.titleLarge)
-                Text("These are staged feature entry points; not every module is implemented yet.")
+                Text("Select a module and research paper to open its dedicated workspace.")
             }
             items(ResearchModules.all, key = { it.route }) { module ->
                 Card(
@@ -301,16 +304,34 @@ private fun NewPaperScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ModuleScreen(title: String, description: String, onBack: () -> Unit) {
+private fun ModuleScreen(
+    title: String,
+    description: String,
+    projects: List<ResearchProject>,
+    onSelectProject: (Long) -> Unit,
+    onCreateProject: () -> Unit,
+    onBack: () -> Unit
+) {
     Scaffold(topBar = { TopAppBar(title = { Text(title) }) }) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(description, style = MaterialTheme.typography.bodyLarge)
-            Text("This screen is a navigation placeholder. The feature is not implemented yet.")
-            Text("The app must not fabricate sources, research findings, or peer-review outcomes.")
-            OutlinedButton(onClick = onBack) { Text("Back to workspace") }
+            item {
+                Text(description)
+                Text("Choose a paper to use this module's research tools.")
+                if (projects.isEmpty()) Text("No projects yet. Create a paper to begin.")
+                Button(onClick = onCreateProject) { Text("Create paper") }
+            }
+            items(projects, key = { it.id }) { project ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(project.title, style = MaterialTheme.typography.titleMedium)
+                        Button(onClick = { onSelectProject(project.id) }) { Text("Open $title") }
+                    }
+                }
+            }
+            item { OutlinedButton(onClick = onBack) { Text("Back") } }
         }
     }
 }
