@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build and unit tests
+    name: Build, lint and unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -54,6 +54,18 @@ jobs:
 
       - name: Run unit tests
         run: ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest
+
+      - name: Android lint
+        run: ./gradlew --no-daemon --stacktrace :app:lintDebug
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: am-i-scholar-lint-report
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
