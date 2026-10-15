@@ -51,6 +51,16 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             }
         }
     }
+    val docxLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) { uri ->
+        if (uri != null) scope.launch(Dispatchers.IO) {
+            runCatching { exportBytes?.let { DocumentExporter.save(context, uri, it) } }
+        }
+    }
+    val pdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        if (uri != null) scope.launch(Dispatchers.IO) {
+            runCatching { exportBytes?.let { DocumentExporter.save(context, uri, it) } }
+        }
+    }
     fun startNote(note: ResearchNote? = null, kind: String = "NOTE") {
         selectedNote = note; title = note?.title.orEmpty(); body = note?.content.orEmpty()
         editor = if (note == null) kind else note.kind
