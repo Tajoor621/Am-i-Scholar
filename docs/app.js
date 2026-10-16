@@ -91,7 +91,7 @@ function renderEvidenceLinks(panel,actions){
  const form=document.createElement("form"),claim=document.createElement("select"),source=document.createElement("select"),status=document.createElement("select"),rationale=document.createElement("textarea");
  const addOptions=(target,items)=>items.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.title;target.append(o)});
  addOptions(claim,claims);addOptions(source,sources);
- for(const [value,label] of [["supported","Supported (researcher assessed)"],["partially supported","Partially supported"],["unsupported","Unsupported"]]){const o=document.createElement("option");o.value=value;o.textContent=label;status.append(o)}
+ for(const [value,label] of [["unsupported","Unsupported / not yet assessed"],["partially supported","Partially supported"],["supported","Supported (researcher assessed)"]]){const o=document.createElement("option");o.value=value;o.textContent=label;status.append(o)}
  const labeled=(label,input)=>{const l=el("label");l.append(el("span",label),input);form.append(l)};
  labeled("Evidence/claim record",claim);labeled("Source record",source);labeled("Assessment",status);labeled("Rationale and exact location in source",rationale);
  const submit=el("button","Save evidence link");submit.type="submit";submit.disabled=!claims.length||!sources.length;form.append(submit);

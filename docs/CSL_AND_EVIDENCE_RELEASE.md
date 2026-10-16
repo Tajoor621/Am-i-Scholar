@@ -33,7 +33,7 @@ The web project export/import uses the same optional index-based relationship fo
 
 ## Remaining blockers before 10/10
 
-1. Android CSL bibliography output still uses simplified Kotlin draft templates; full native parity requires integration with the same CSL engine or independently validated equivalent.
+1. Android Citation Center now includes a locally bundled citeproc-js WebView; legacy source cards still show simplified Kotlin drafts. Native WebView citation output requires device and golden-fixture verification.
 2. CSL golden tests for all seven style definitions, Unicode names, multi-author, missing metadata, and DOI/URL edge cases need independent fixtures.
 3. Android Room migration test from an actual populated v2 database and on-device Android↔web restore acceptance.
 4. Complete DOCX/PDF rendering, accessibility/TalkBack, privacy/security, and signed release verification.

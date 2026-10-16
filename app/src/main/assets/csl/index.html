@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+body{font:16px system-ui,sans-serif;background:#fff;color:#191919;margin:12px}label{display:block;margin:10px 0}select,button{font:inherit;min-height:48px;border-radius:9px;padding:8px;border:1px solid #b3a071}button{background:#171717;color:#e9bf64} .entry{border-bottom:1px solid #ddd;padding:10px 0;overflow-wrap:anywhere}#notice{color:#7d4900}
+</style></head><body><p id="notice">Draft citation — verify against original source and target journal requirements. Processing is offline; metadata is not independently verified.</p>
+<label>CSL style <select id="style">
+<option value="apa">APA 7</option><option value="modern-language-association">MLA 9</option><option value="chicago-author-date">Chicago author-date</option><option value="chicago-notes-bibliography-17th-edition">Chicago notes 17</option><option value="ieee">IEEE</option><option value="harvard-cite-them-right">Harvard (Cite Them Right)</option><option value="elsevier-vancouver">Vancouver (Elsevier/NLM)</option>
+</select></label><button id="format">Format bibliography offline</button><div id="result" role="status" aria-live="polite">Select a style and format the saved sources.</div>
+<script src="./citeproc.js"></script><script>
+"use strict";let items=[];const cache=new Map();const result=document.getElementById("result");
+window.setSources=function(next){items=Array.isArray(next)?next:[];result.textContent=items.length+" local sources ready for CSL formatting."};
+async function asset(name){if(!cache.has(name))cache.set(name,fetch(name).then(r=>{if(!r.ok)throw Error("Missing bundled CSL asset");return r.text()}));return cache.get(name)}
+document.getElementById("format").onclick=async function(){result.textContent="Formatting locally…";try{
+const [style,locale]=await Promise.all([asset("./styles/"+document.getElementById("style").value+".csl"),asset("./locales-en-US.xml")]);
+const byId=Object.fromEntries(items.map(x=>[x.id,x]));const engine=new CSL.Engine({retrieveLocale:()=>locale,retrieveItem:id=>byId[id]},style,"en-US");
+engine.setOutputFormat("html");engine.updateItems(items.map(x=>x.id));const bibliography=engine.makeBibliography();
+result.replaceChildren();if(!bibliography||!bibliography[1].length){result.textContent="No source records available.";return}
+for(const html of bibliography[1]){const parsed=new DOMParser().parseFromString("<div>"+html+"</div>","text/html");const entry=document.createElement("div");entry.className="entry";
+function append(node,target){for(const child of node.childNodes){if(child.nodeType===3){target.append(document.createTextNode(child.textContent));continue}if(child.nodeType!==1)continue;const allowed=["I","EM","B","STRONG","SUP","SUB","SPAN"];const tag=allowed.includes(child.tagName)?child.tagName.toLowerCase():"span";const el=document.createElement(tag);target.append(el);append(child,el)}}
+append(parsed.body.firstElementChild,entry);result.append(entry)}
+}catch(e){result.textContent="CSL formatting failed: "+e.message}}
+</script></body></html>

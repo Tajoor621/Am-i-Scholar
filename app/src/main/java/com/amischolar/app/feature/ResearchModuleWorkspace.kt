@@ -138,10 +138,8 @@ fun ResearchModuleWorkspace(
                 Text("Citation metadata review", style = MaterialTheme.typography.titleMedium)
                 if (sources.isEmpty()) Text("No saved references. Import or add sources in the full workspace.")
                 CitationAudit.inspect(sources).forEach { Text(it.sourceTitle + ": " + it.issue) }
-                sources.forEachIndexed { index, source ->
-                    Text(CitationFormatter.format(source, project?.citationStyle ?: "APA", index + 1))
-                }
-                Text("Formatting is a draft, not certified CSL compliance.")
+                OfflineCitationPanel(sources)
+                Text("Formatting uses a bundled CSL processor. Verify the original sources and target journal style.")
             }
             if (route == "integrity" || route == "submission-kit") item {
                 Text("Manuscript readiness", style = MaterialTheme.typography.titleMedium)
