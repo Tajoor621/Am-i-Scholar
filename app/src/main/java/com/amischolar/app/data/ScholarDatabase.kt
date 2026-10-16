@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [ResearchProject::class, ResearchNote::class, ResearchSource::class], version = 2, exportSchema = false)
+@Database(entities = [ResearchProject::class, ResearchNote::class, ResearchSource::class, EvidenceLink::class], version = 3, exportSchema = false)
 abstract class ScholarDatabase : RoomDatabase() {
     abstract fun researchProjectDao(): ResearchProjectDao
     abstract fun researchWorkspaceDao(): ResearchWorkspaceDao
@@ -21,12 +21,20 @@ abstract class ScholarDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_research_sources_projectId ON research_sources (projectId)")
             }
         }
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS evidence_links (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, projectId INTEGER NOT NULL, claimNoteId INTEGER NOT NULL, sourceId INTEGER NOT NULL, status TEXT NOT NULL, rationale TEXT NOT NULL, createdAtEpochMillis INTEGER NOT NULL, FOREIGN KEY(projectId) REFERENCES research_projects(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(claimNoteId) REFERENCES research_notes(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(sourceId) REFERENCES research_sources(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_evidence_links_projectId ON evidence_links (projectId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_evidence_links_claimNoteId ON evidence_links (claimNoteId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_evidence_links_sourceId ON evidence_links (sourceId)")
+            }
+        }
         @Volatile private var instance: ScholarDatabase? = null
         fun getInstance(context: Context): ScholarDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, ScholarDatabase::class.java, "am_i_scholar.db"
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
             }
     }
 }

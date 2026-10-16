@@ -109,6 +109,7 @@ fun ResearchModuleWorkspace(
             if (route == "evidence-matrix") item {
                 Text("Evidence traceability", style = MaterialTheme.typography.titleMedium)
                 ResearchAnalysis.evidenceWarnings(ResearchAnalysis.evidenceRows(notes), sources).forEach { Text("• " + it) }
+                EvidenceLinksPanel(projectId, dao, notes, sources)
             }
             if (route == "outline-architect") item {
                 Text("Outline structure and source links", style = MaterialTheme.typography.titleMedium)

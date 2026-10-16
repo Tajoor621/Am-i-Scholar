@@ -29,6 +29,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     LaunchedEffect(projectId) { project = withContext(Dispatchers.IO) { projectDao.findById(projectId) } }
     val notes by dao.observeNotes(projectId).collectAsState(initial = emptyList())
     val sources by dao.observeSources(projectId).collectAsState(initial = emptyList())
+    val evidenceLinks by dao.observeEvidenceLinks(projectId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var editor by remember { mutableStateOf("") }
@@ -75,7 +76,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             try {
                 val bytes = withContext(Dispatchers.Default) {
                     ProjectBackup.encode(ProjectBackup.Snapshot(
-                        requireNotNull(project) { "Project unavailable" }, notes, sources
+                        requireNotNull(project) { "Project unavailable" }, notes, sources, evidenceLinks
                     ))
                 }
                 withContext(Dispatchers.IO) { DocumentExporter.save(context, uri, bytes) }
@@ -107,8 +108,13 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 val newId = withContext(Dispatchers.IO) {
                     database.withTransaction {
                         val id = projectDao.insert(snapshot.project.copy(id = 0))
-                        snapshot.notes.forEach { dao.insertNote(it.copy(id = 0, projectId = id)) }
-                        snapshot.sources.forEach { dao.insertSource(it.copy(id = 0, projectId = id)) }
+                        val noteIds = snapshot.notes.map { dao.insertNote(it.copy(id = 0, projectId = id)) }
+                        val sourceIds = snapshot.sources.map { dao.insertSource(it.copy(id = 0, projectId = id)) }
+                        snapshot.links.forEach { link ->
+                            dao.insertEvidenceLink(EvidenceLink(projectId = id,
+                                claimNoteId = noteIds[link.noteIndex], sourceId = sourceIds[link.sourceIndex],
+                                status = link.status, rationale = link.rationale))
+                        }
                         id
                     }
                 }
@@ -223,7 +229,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     when (activeModule) {
                         "topic-lab" -> Text("Edit the project's research question to refine its scope; the checks below use saved project data.")
                         "literature-radar" -> Text("Search free research metadata providers below, then save sources.")
-                        "evidence-matrix" -> Button(onClick = { startNote(kind = "EVIDENCE"); body = ResearchPlanner.evidenceTemplate() }) { Text("Create evidence record") }
+                        "evidence-matrix" -> { Button(onClick = { startNote(kind = "EVIDENCE"); body = ResearchPlanner.evidenceTemplate() }) { Text("Create evidence record") }; EvidenceLinksPanel(projectId, dao, notes, sources) }
                         "outline-architect" -> Button(onClick = { startNote(kind = "OUTLINE") }) { Text("Create outline") }
                         "draft-studio" -> Button(onClick = { startNote(kind = "DRAFT") }) { Text("Create draft") }
                         "style-coach" -> Text("Open a draft below to see local writing feedback.")

@@ -109,3 +109,42 @@ test("evidence relationships survive reload and research JSON backup",async({pag
  await page.locator("#allModules").getByRole("button",{name:"Open Evidence Matrix"}).click();
  await expect(page.locator("#toolPanel")).toContainText("Claim A → Source A");
 });
+
+test("offline CSL formats APA and IEEE using bundled processor and styles",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("CSL accuracy test");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ await page.locator("#recordTitle").fill("A study of microbes");
+ await page.locator("#recordContent").fill("Authors: Smith, Jane; Khan, Ali\nYear: 2024\nTitle: A study of microbes\nJournal / publisher: Journal of Biology\nVolume / issue: 12(2)\nPages: 10-15\nDOI or official URL: 10.1234/example");
+ await page.getByRole("button",{name:"Save record"}).click();
+ await page.locator("#cslStyle").selectOption("apa");
+ await page.getByRole("button",{name:"Format bibliography offline"}).click();
+ await expect(page.locator("#cslResult")).toContainText("A study of microbes",{timeout:15000});
+ await expect(page.locator("#cslResult")).toContainText("2024");
+ await page.locator("#cslStyle").selectOption("ieee");
+ await page.getByRole("button",{name:"Format bibliography offline"}).click();
+ await expect(page.locator("#cslResult")).toContainText("A study of microbes",{timeout:15000});
+ await expect(page.locator("#cslStyle option")).toHaveCount(7);
+});
+test("portable web to Android backup includes evidence links",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("Backup linked evidence");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#recordTitle").fill("Source 1");
+ await page.locator("#recordContent").fill("Authors: Smith\nYear: 2025");
+ await page.getByRole("button",{name:"Save record"}).click();
+ await page.getByRole("button",{name:"← Modules"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Evidence Matrix"}).click();
+ await page.locator("#recordTitle").fill("Claim 1");
+ await page.locator("#recordContent").fill("Claim: Claim 1\nSupport status: supported");
+ await page.getByRole("button",{name:"Save record"}).click();
+ await page.locator("#toolPanel select").first().selectOption({index:0});
+ await page.getByRole("button",{name:"Save evidence link"}).click();
+ const snapshot=await page.evaluate(()=>androidSnapshot(projectId));
+ expect(snapshot.evidenceLinks).toHaveLength(1);
+ expect(snapshot.evidenceLinks[0]).toMatchObject({noteIndex:0,sourceIndex:0,status:"unsupported"});
+});

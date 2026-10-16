@@ -33,4 +33,35 @@ class ProjectBackupInstrumentedTest {
         try { ProjectBackup.decode(ByteArray(ProjectBackup.MAX_BYTES + 1)); fail("Oversized backup accepted") }
         catch (_: IllegalArgumentException) { }
     }
+    @Test fun evidenceRelationshipsRoundTripAndLegacyBackupsRemainReadable() {
+        val project = ResearchProject(id = 77, title = "Evidence project")
+        val notes = listOf(ResearchNote(id = 11, projectId = 77, title = "Claim", kind = "EVIDENCE"))
+        val sources = listOf(ResearchSource(id = 22, projectId = 77, title = "Verified source"))
+        val link = EvidenceLink(id = 33, projectId = 77, claimNoteId = 11, sourceId = 22,
+            status = "partially supported", rationale = "Page 12, limited sample")
+        val bytes = ProjectBackup.encode(ProjectBackup.Snapshot(project, notes, sources, listOf(link)))
+        val restored = ProjectBackup.decode(bytes)
+        assertEquals(1, restored.links.size)
+        assertEquals(0, restored.links.single().noteIndex)
+        assertEquals(0, restored.links.single().sourceIndex)
+        assertEquals("partially supported", restored.links.single().status)
+        assertEquals("Page 12, limited sample", restored.links.single().rationale)
+        val legacy = org.json.JSONObject(bytes.toString(Charsets.UTF_8))
+        legacy.remove("evidenceLinks")
+        assertTrue(ProjectBackup.decode(legacy.toString().toByteArray()).links.isEmpty())
+    }
+
+    @Test fun danglingEvidenceLinkIsRejectedBeforeRestore() {
+        val root = org.json.JSONObject()
+            .put("format", ProjectBackup.FORMAT).put("version", 1)
+            .put("project", org.json.JSONObject().put("title", "Test")
+                .put("researchQuestion", "").put("discipline", "").put("citationStyle", "APA"))
+            .put("notes", org.json.JSONArray()).put("sources", org.json.JSONArray())
+            .put("evidenceLinks", org.json.JSONArray().put(org.json.JSONObject()
+                .put("noteIndex", 3).put("sourceIndex", 2)
+                .put("status", "supported").put("rationale", "invalid")))
+        try { ProjectBackup.decode(root.toString().toByteArray()); fail("Dangling relationship accepted") }
+        catch (_: IllegalArgumentException) { }
+    }
+
 }

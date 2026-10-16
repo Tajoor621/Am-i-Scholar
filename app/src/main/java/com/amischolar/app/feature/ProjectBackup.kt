@@ -3,6 +3,7 @@ package com.amischolar.app.feature
 import com.amischolar.app.data.ResearchNote
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ResearchSource
+import com.amischolar.app.data.EvidenceLink
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -13,14 +14,21 @@ object ProjectBackup {
     const val MAX_BYTES = 10 * 1024 * 1024
     const val MAX_RECORDS = 10000
 
+    data class PortableEvidenceLink(
+        val noteIndex: Int, val sourceIndex: Int,
+        val status: String, val rationale: String
+    )
+
     data class Snapshot(
         val project: ResearchProject,
         val notes: List<ResearchNote>,
-        val sources: List<ResearchSource>
+        val sources: List<ResearchSource>,
+        val evidenceLinks: List<EvidenceLink> = emptyList(),
+        val links: List<PortableEvidenceLink> = emptyList()
     )
 
     fun encode(snapshot: Snapshot): ByteArray {
-        require(snapshot.notes.size + snapshot.sources.size <= MAX_RECORDS)
+        require(snapshot.notes.size + snapshot.sources.size + snapshot.evidenceLinks.size <= MAX_RECORDS)
         val p = snapshot.project
         val root = JSONObject()
             .put("format", FORMAT).put("version", VERSION)
@@ -38,7 +46,20 @@ object ProjectBackup {
                 .put("publication", s.publication).put("evidenceNotes", s.evidenceNotes)
                 .put("verified", s.verified))
         }
-        root.put("notes", notes).put("sources", sources)
+        val links = JSONArray()
+        snapshot.evidenceLinks.forEach { link ->
+            val noteIndex = snapshot.notes.indexOfFirst { it.id == link.claimNoteId }
+            val sourceIndex = snapshot.sources.indexOfFirst { it.id == link.sourceId }
+            if (noteIndex >= 0 && sourceIndex >= 0) {
+                links.put(JSONObject().put("noteIndex", noteIndex).put("sourceIndex", sourceIndex)
+                    .put("status", link.status).put("rationale", link.rationale))
+            }
+        }
+        snapshot.links.forEach { link ->
+            links.put(JSONObject().put("noteIndex", link.noteIndex).put("sourceIndex", link.sourceIndex)
+                .put("status", link.status).put("rationale", link.rationale))
+        }
+        root.put("notes", notes).put("sources", sources).put("evidenceLinks", links)
         return root.toString().toByteArray(Charsets.UTF_8).also { require(it.size <= MAX_BYTES) }
     }
 
@@ -50,7 +71,8 @@ object ProjectBackup {
         val p = root.getJSONObject("project")
         val notes = root.getJSONArray("notes")
         val sources = root.getJSONArray("sources")
-        require(notes.length() + sources.length() <= MAX_RECORDS) { "Too many records" }
+        val links = root.optJSONArray("evidenceLinks") ?: JSONArray()
+        require(notes.length() + sources.length() + links.length() <= MAX_RECORDS) { "Too many records" }
         fun JSONObject.required(key: String): String = getString(key).also {
             require(it.length <= 2_000_000) { "Field too large: $key" }
         }
@@ -71,6 +93,16 @@ object ProjectBackup {
                 doiOrUrl = s.required("doiOrUrl"), publication = s.required("publication"),
                 evidenceNotes = s.required("evidenceNotes"), verified = s.getBoolean("verified"))
         }
-        return Snapshot(project, restoredNotes, restoredSources)
+        val restoredLinks = (0 until links.length()).map { index ->
+            val link = links.getJSONObject(index)
+            val noteIndex = link.getInt("noteIndex")
+            val sourceIndex = link.getInt("sourceIndex")
+            require(noteIndex in restoredNotes.indices && sourceIndex in restoredSources.indices) { "Invalid evidence link reference" }
+            require(restoredNotes[noteIndex].kind == "EVIDENCE") { "Claim must be an evidence record" }
+            val status = link.getString("status")
+            require(status in setOf("supported", "partially supported", "unsupported")) { "Invalid evidence assessment" }
+            PortableEvidenceLink(noteIndex, sourceIndex, status, link.required("rationale"))
+        }
+        return Snapshot(project, restoredNotes, restoredSources, links = restoredLinks)
     }
 }
