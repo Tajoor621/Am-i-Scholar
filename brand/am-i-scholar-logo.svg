@@ -1,11 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Am I Scholar logo: open book and graduation cap">
-<rect width="512" height="512" rx="108" fill="#071A30"/>
-<path d="M72 194 L203 166 Q238 166 256 203 Q274 166 309 166 L440 194 L440 369 L312 340 Q274 339 256 383 Q238 339 200 340 L72 369 Z" fill="#F4C568"/>
-<path d="M99 216 L199 191 Q228 190 241 224 L241 344 Q221 316 195 316 L99 334 Z" fill="#FFFFFF"/>
-<path d="M271 224 Q284 190 313 191 L413 216 L413 334 L317 316 Q291 316 271 344 Z" fill="#FFFFFF"/>
-<path d="M256 201 L271 224 L271 344 L256 367 L241 344 L241 224 Z" fill="#0E82C7"/>
-<path d="M132 128 L256 72 L380 128 L256 181 Z" fill="#F4C568"/>
-<path d="M183 157 L183 191 Q256 232 329 191 L329 157 L256 188 Z" fill="#E3A944"/>
-<path d="M377 128 L377 202" stroke="#F4C568" stroke-width="11" stroke-linecap="round"/>
-<circle cx="377" cy="213" r="13" fill="#F4C568"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Am I Scholar: golden academic A, book, and graduation cap">
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0B3"/><stop offset=".35" stop-color="#E6B85C"/><stop offset=".65" stop-color="#B47C22"/><stop offset="1" stop-color="#F9D989"/></linearGradient></defs>
+<rect width="512" height="512" rx="104" fill="#fff"/><rect x="12" y="12" width="488" height="488" rx="94" fill="none" stroke="url(#gold)" stroke-width="17"/>
+<path d="M90 153 256 83 422 153 256 224Z" fill="#111" stroke="url(#gold)" stroke-width="10" stroke-linejoin="round"/>
+<path d="M166 191v36c48 43 132 43 180 0v-36l-90 42Z" fill="#111" stroke="url(#gold)" stroke-width="7"/>
+<path d="M408 157v93" stroke="#B47C22" stroke-width="10" stroke-linecap="round"/><circle cx="408" cy="260" r="12" fill="url(#gold)"/>
+<path d="M147 354 238 183h36l91 171h-52l-57-112-58 112Z" fill="#111" stroke="url(#gold)" stroke-width="9" stroke-linejoin="round"/>
+<path d="M235 314h43" stroke="url(#gold)" stroke-width="13" stroke-linecap="round"/>
+<path d="M74 372q93-29 182 18 89-47 182-18v52q-91-27-182 17-91-44-182-17Z" fill="#111" stroke="url(#gold)" stroke-width="10" stroke-linejoin="round"/>
+<path d="M256 390v50" stroke="url(#gold)" stroke-width="8"/>
+<circle cx="368" cy="325" r="32" fill="#fff" stroke="#111" stroke-width="10"/><path d="m389 347 27 27" stroke="#111" stroke-width="13" stroke-linecap="round"/>
+<path d="M350 337v-12m13 12v-23m13 23v-33" stroke="#B47C22" stroke-width="7"/>
 </svg>

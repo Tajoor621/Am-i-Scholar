@@ -5,8 +5,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7fc",
-  "theme_color": "#172b49",
+  "background_color": "#ffffff",
+  "theme_color": "#151515",
   "icons": [
     {
       "src": "./brand/am-i-scholar-logo.svg",

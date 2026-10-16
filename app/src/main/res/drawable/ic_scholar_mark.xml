@@ -1,16 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#071A30" android:pathData="M0,0h108v108h-108z"/>
-    <!-- Open research book: a compact, legible mark for small launchers. -->
-    <path android:fillColor="#F4C568" android:pathData="M15,36 L42,30 Q51,30 54,38 Q57,30 66,30 L93,36 L93,76 L66,70 Q58,70 54,79 Q50,70 42,70 L15,76 Z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M21,41 L42,36 Q49,36 51,43 L51,69 Q47,64 41,64 L21,68 Z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M57,43 Q61,36 66,36 L87,41 L87,68 L67,64 Q61,64 57,69 Z"/>
-    <path android:fillColor="#0E82C7" android:pathData="M54,39 L57,43 L57,69 L54,75 L51,69 L51,43 Z"/>
-    <!-- Academic cap, readable without any tiny text. -->
-    <path android:fillColor="#F4C568" android:pathData="M26,28 L54,16 L82,28 L54,40 Z"/>
-    <path android:fillColor="#E3A944" android:pathData="M38,35 L38,43 Q54,53 70,43 L70,35 L54,42 Z"/>
-    <path android:strokeColor="#F4C568" android:strokeWidth="2.5" android:fillColor="@android:color/transparent" android:pathData="M81,28 L81,45"/>
-    <path android:fillColor="#F4C568" android:pathData="M78,46 a3,3 0,1 0,6 0 a3,3 0,1 0,-6 0"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="512" android:viewportHeight="512">
+<path android:fillColor="#FFFFFF" android:pathData="M0,0h512v512h-512z"/>
+<path android:fillColor="#171717" android:strokeColor="#D8A746" android:strokeWidth="10" android:pathData="M90,153 L256,83 422,153 256,224 Z"/>
+<path android:fillColor="#171717" android:strokeColor="#D8A746" android:strokeWidth="7" android:pathData="M166,191v36c48,43 132,43 180,0v-36l-90,42Z"/>
+<path android:strokeColor="#B47C22" android:strokeWidth="10" android:pathData="M408,157v93"/>
+<path android:fillColor="#B47C22" android:pathData="M408,248a12,12 0,1 0,0 24a12,12 0,1 0,0 -24"/>
+<path android:fillColor="#171717" android:strokeColor="#D8A746" android:strokeWidth="9" android:pathData="M147,354 L238,183h36l91,171h-52l-57,-112 -58,112Z"/>
+<path android:strokeColor="#D8A746" android:strokeWidth="13" android:pathData="M235,314h43"/>
+<path android:fillColor="#171717" android:strokeColor="#D8A746" android:strokeWidth="10" android:pathData="M74,372q93,-29 182,18q89,-47 182,-18v52q-91,-27 -182,17q-91,-44 -182,-17Z"/>
+<path android:strokeColor="#D8A746" android:strokeWidth="8" android:pathData="M256,390v50"/>
+<path android:fillColor="#FFFFFF" android:strokeColor="#171717" android:strokeWidth="10" android:pathData="M368,293a32,32 0,1 0,0 64a32,32 0,1 0,0 -64"/>
+<path android:strokeColor="#171717" android:strokeWidth="13" android:pathData="M389,347l27,27"/>
 </vector>
