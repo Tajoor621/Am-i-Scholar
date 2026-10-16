@@ -21,7 +21,7 @@ abstract class ScholarDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_research_sources_projectId ON research_sources (projectId)")
             }
         }
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS evidence_links (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, projectId INTEGER NOT NULL, claimNoteId INTEGER NOT NULL, sourceId INTEGER NOT NULL, status TEXT NOT NULL, rationale TEXT NOT NULL, createdAtEpochMillis INTEGER NOT NULL, FOREIGN KEY(projectId) REFERENCES research_projects(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(claimNoteId) REFERENCES research_notes(id) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(sourceId) REFERENCES research_sources(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_evidence_links_projectId ON evidence_links (projectId)")

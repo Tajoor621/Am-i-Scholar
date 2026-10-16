@@ -9,7 +9,7 @@ Android Room v3 adds a non-destructive evidence relationship table, indexed fore
 ## Verification gates
 
 - Web browser E2E now exercises local CSL APA and IEEE and portable evidence-link backup. Seven styles are packaged and selectable.
-- Android instrumentation checks bundled CSL asset presence and project backup link roundtrip.
+- Android instrumentation checks bundled CSL asset presence, project backup link roundtrip, and a populated Room v2 → v3 migration with cascade cleanup. Passing CI and emulator runs are required before declaring verification.
 - **Not yet verified:** golden bibliographic fixtures for all seven styles, full WebView rendering on real devices, migration from a populated Room v2 database, Unicode and journal-specific edge cases, and accessibility with TalkBack.
 - Remaining product features from the original 10/10 definition of done (DOCX/PDF quality, signed release APK, full submission/archive flow) require separate implementation and acceptance.
 
