@@ -112,7 +112,7 @@ case "evidence-matrix":{template("Evidence from verified study","Claim:\nSupport
 case "outline-architect":{template("Manuscript outline","Introduction:\nResearch gap:\nResearch question:\nMethods:\nResults / expected analysis:\nDiscussion:\nLimitations:\nConclusion:\nReferences and source links:");const issues=[];rows.forEach(r=>["introduction","method","conclusion","reference"].forEach(k=>{if(!r.content.toLowerCase().includes(k))issues.push(r.title+": consider adding "+k)}));analysisBox(panel,"Outline coverage",issues);break}
 case "draft-studio":{const count=rows.reduce((n,r)=>n+r.content.trim().split(/\s+/).filter(Boolean).length,0);toolLine(panel,"Draft word count across saved records: "+count);template("Manuscript draft","Abstract:\nIntroduction:\nMethods:\nResults:\nDiscussion:\nLimitations:\nConclusion:\nReferences:\n");actions.append(button("Export draft text",()=>download("am-i-scholar-draft.txt",rows.map(r=>r.title+"\n"+r.content).join("\n\n"),"text/plain")));actions.append(button("Export Markdown",()=>exportManuscript("markdown")));actions.append(button("Export print-ready HTML",()=>exportManuscript("html")));actions.append(button("Print / Save PDF",()=>exportManuscript("print")));break}
 case "style-coach":{template("Clarity revision","Original paragraph:\nRevised paragraph:\nWhy this improves clarity:\nTerminology / factual checks:");const drafts=data.records.filter(r=>r.projectId===projectId&&r.moduleId==="draft-studio");const long=drafts.flatMap(r=>r.content.split(/[.!?]+/).filter(s=>s.trim().split(/\s+/).length>30).map(s=>r.title+": "+s.trim().slice(0,110)));analysisBox(panel,"Offline writing signals",drafts.length?long.length?long:["No sentences over 30 words detected. This is not a full grammar check."]:["No draft found. Add text in Draft Studio first."]);break}
-case "citation-center":{toolLine(panel,"Draft citation — verify against original source and target journal requirements. Local CSL styles do not validate your metadata.");template("Bibliographic record","Authors:\nYear:\nTitle:\nJournal / publisher:\nVolume / issue:\nPages:\nDOI or official URL:\nVerified against original: No");const issues=[];rows.forEach(r=>{const f=parseFields(r.content);["authors","year","doi or official url"].forEach(k=>{if(!f[k])issues.push(r.title+": missing "+k)})});analysisBox(panel,"Reference metadata audit",issues.length?issues:["No missing required fields in saved citation records. Verify metadata against the original before submitting."]);actions.append(button("Export CSL-JSON metadata",exportCslJson));CitationWorkspace.render(panel,recordsFor(projectId,"citation-center").concat(recordsFor(projectId,"literature-radar")),parseFields,download);break}
+case "citation-center":{toolLine(panel,"Draft citation — verify against original source and target journal requirements. Local CSL styles do not validate your metadata.");template("Bibliographic record","Authors:\nYear:\nTitle:\nJournal / publisher:\nVolume / issue:\nPages:\nDOI or official URL:\nVerified against original: No");const issues=[];rows.forEach(r=>{const f=parseFields(r.content);["authors","year","doi or official url"].forEach(k=>{if(!f[k])issues.push(r.title+": missing "+k)})});analysisBox(panel,"Reference metadata audit",issues.length?issues:["No missing required fields in saved citation records. Verify metadata against the original before submitting."]);actions.append(button("Export CSL-JSON metadata",exportCslJson),button("Import CSL-JSON metadata",importCslJson));CitationWorkspace.render(panel,recordsFor(projectId,"citation-center").concat(recordsFor(projectId,"literature-radar")),parseFields,download);break}
 case "integrity":{template("Integrity and ethics review","Claims matched to sources:\nDirect quotations and page numbers:\nParaphrase attribution:\nHuman/animal ethics approval if applicable:\nConsent if applicable:\nConflicts of interest:\nFunding disclosure:\nAI-use disclosure per policy:\nData integrity and limitations:");analysisBox(panel,"Human review required",["No plagiarism database or similarity score is provided","Check citations and quotations against originals","Follow institution and journal disclosure policies","Verify ethical approvals before submission"]);break}
 case "review-simulator":{template("Simulated reviewer response","Comment / potential concern:\nEvidence supporting response:\nResponse to reviewer:\nManuscript change:\nSection / line numbers:\nUnresolved issue:");analysisBox(panel,"Simulated reviewer checklist",["Is the research question novel and justified?","Can another researcher reproduce the method?","Do the findings support each conclusion?","Are limitations and biases clearly disclosed?","Are all sources verifiable?"]);break}
 case "submission-kit":{template("Target journal requirements","Target journal:\nOfficial HTTPS author-guidelines URL:\nJournal scope and indexing:\nPublication fees verified:\nWord and figure limits:\nReporting checklist:\nEthics / consent:\nData availability statement:\nCover letter:\nSubmission readiness:");const issues=[];rows.forEach(r=>{const f=parseFields(r.content);if(!f["target journal"])issues.push(r.title+": journal missing");if(!/^https:\/\//i.test(f["official https author-guidelines url"]||""))issues.push(r.title+": official HTTPS guidelines link missing")});analysisBox(panel,"Journal due diligence",issues.length?issues:["Verify journal scope, editorial board, indexing and fees on official websites. No automated journal recommendation."]);break}
@@ -134,11 +134,32 @@ function exportManuscript(format){
   const pre=win.document.createElement("pre");pre.textContent=title+"\n\n"+text;pre.style.cssText="white-space:pre-wrap;font:12pt/1.6 Georgia,serif;margin:40px";win.document.body.append(pre);win.document.title=title;win.focus();win.print();return
  }
 }
+function importCslJson(){
+ const input=document.createElement("input");input.type="file";input.accept=".json,application/json";
+ input.onchange=async()=>{const file=input.files?.[0];if(!file)return;
+  try{
+   if(file.size>5*1024*1024)throw Error("CSL-JSON file exceeds 5 MB.");
+   const obj=JSON.parse(await file.text());if(!Array.isArray(obj)||obj.length>2000)throw Error("Expected an array of up to 2,000 CSL-JSON items.");
+   const imported=obj.map(x=>{
+    if(!x||typeof x!=="object"||typeof x.title!=="string"||!x.title.trim())throw Error("Each CSL item needs a title.");
+    const authors=Array.isArray(x.author)?x.author.map(a=>a.literal||[a.family,a.given].filter(Boolean).join(", ")).filter(Boolean).join("; "):"";
+    const year=x.issued?.["date-parts"]?.[0]?.[0]||"";
+    const doi=typeof x.DOI==="string"&&/^10\.\d{4,9}\//i.test(x.DOI)?x.DOI:"";
+    const url=typeof x.URL==="string"&&/^https?:\/\//i.test(x.URL)?x.URL:"";
+    const content=["CSL-JSON: "+safeText(JSON.stringify(x),50000),"Authors: "+safeText(authors,3000),"Year: "+safeText(String(year),10),"Title: "+safeText(x.title,1000),"Journal / publisher: "+safeText(x["container-title"],1000),"DOI or official URL: "+safeText(doi||url,2000),"Provenance: User-imported CSL-JSON metadata","Verified against original: No"].join("\n");
+    return {id:uid(),projectId,moduleId:"citation-center",title:safeText(x.title,1000),content,updated:Date.now()};
+   });
+   if(!confirm("Import "+imported.length+" unverified CSL-JSON source records into this paper?"))return;
+   data.records.push(...imported);save();renderRecords();renderTool();notify("Imported CSL-JSON metadata; all entries remain unverified.");
+  }catch(e){notify("CSL-JSON import failed: "+e.message)}
+ };
+ input.click();
+}
 function exportCslJson(){
  const p=project();if(!p)return;
  const rows=recordsFor(projectId,"citation-center").concat(recordsFor(projectId,"literature-radar"));
  const entries=rows.map(r=>{
-  const f=parseFields(r.content),authors=(f.authors||"").split(";").map(n=>n.trim()).filter(Boolean).map(name=>({literal:name}));
+  const f=parseFields(r.content);if(f["csl-json"]){try{const original=JSON.parse(f["csl-json"]);if(original&&typeof original==="object"&&original.title){return {...original,id:r.id}}}catch{}}const authors=(f.authors||"").split(";").map(n=>n.trim()).filter(Boolean).map(name=>({literal:name}));
   const year=Number.parseInt(f.year,10),raw=f["doi or official url"]||f["doi or url"]||"",doi=LiteratureAPI.normalizeDOI(raw);
   const item={id:r.id,type:"article-journal",title:f.title||r.title};
   if(authors.length)item.author=authors;

@@ -148,3 +148,36 @@ test("portable web to Android backup includes evidence links",async({page})=>{
  expect(snapshot.evidenceLinks).toHaveLength(1);
  expect(snapshot.evidenceLinks[0]).toMatchObject({noteIndex:0,sourceIndex:0,status:"unsupported"});
 });
+
+test("all seven locally bundled CSL styles render a bibliography",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("Seven styles");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ await page.locator("#recordTitle").fill("Research and discovery");
+ await page.locator("#recordContent").fill("Authors: García, María; Smith, Jane\nYear: 2022\nJournal / publisher: Journal of Science\nDOI or official URL: https://doi.org/10.1234/test");
+ await page.getByRole("button",{name:"Save record"}).click();
+ for(const style of ["apa","modern-language-association","chicago-author-date","chicago-notes-bibliography-17th-edition","ieee","harvard-cite-them-right","elsevier-vancouver"]){
+  await page.locator("#cslStyle").selectOption(style);
+  await page.getByRole("button",{name:"Format bibliography offline"}).click();
+  await expect(page.locator("#cslResult")).toContainText("Research and discovery",{timeout:15000});
+  await expect(page.locator("#cslResult")).not.toContainText("CSL formatting unavailable");
+ }
+});
+test("CSL-JSON import preserves bibliographic fields on export",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("CSL roundtrip");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ page.on("dialog",d=>d.accept());
+ const chooserPromise=page.waitForEvent("filechooser");
+ await page.getByRole("button",{name:"Import CSL-JSON metadata"}).click();
+ const chooser=await chooserPromise;
+ await chooser.setFiles({name:"sources.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify([{id:"a",type:"article-journal",title:"Unicode Study",author:[{family:"García",given:"María"}],"container-title":"Journal X",volume:"3",issued:{"date-parts":[[2025]]},DOI:"10.1234/abc"}]))});
+ await expect(page.locator("#recordList")).toContainText("Unicode Study");
+ const data=await page.evaluate(()=>{const r=data.records.find(x=>x.title==="Unicode Study");const f=parseFields(r.content);return JSON.parse(f["csl-json"])});
+ expect(data["container-title"]).toBe("Journal X");
+ expect(data.author[0].family).toBe("García");
+});

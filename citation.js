@@ -13,7 +13,7 @@ const CitationWorkspace = (() => {
   return cache.get(url);
  }
  function cslItem(r, parse) {
-  const f=parse(r.content),authorText=(f.authors||"").split(";").map(x=>x.trim()).filter(Boolean);
+  const f=parse(r.content);if(f["csl-json"]){try{const original=JSON.parse(f["csl-json"]);if(original&&typeof original==="object"&&original.title)return {...original,id:r.id}}catch{}}const authorText=(f.authors||"").split(";").map(x=>x.trim()).filter(Boolean);
   const authors=authorText.map(name=>{const match=name.match(/^(.+?),\s*(.+)$/);return match?{family:match[1],given:match[2]}:{literal:name}});
   const y=Number.parseInt(f.year,10);
   const raw=f["doi or official url"]||f["doi or url"]||"";
