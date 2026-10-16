@@ -27,3 +27,14 @@ The app is an offline-first Android research workspace. The public GitHub Pages 
 **Privacy:** The app does not request Internet permission in this milestone. Android backup is disabled to reduce inadvertent cloud copying of local research data. Export is user-initiated using Android's document picker.
 
 **Release gate:** Do not merge or publish a production release until CI passes, source/data tests and accessibility checks are expanded, and the agreed initial feature set is completed. Device testing remains deferred by user instruction.
+
+
+## October 2026 incremental hardening (web)
+
+- Literature Radar: explicit user-initiated OpenAlex/Crossref queries, transient failure retries, rate-limit feedback, DOI/title-based deduplication, UTC fetched-at provenance, and explicit unverified status. Other providers remain Android-only or future work.
+- Evidence Matrix: structured claim/support-status fields and CSV/Markdown export with verification notice; existing records remain readable.
+- Citation Center: clear draft-citation disclaimer; **not yet CSL compliant**. Existing Android citation templates remain unchanged pending an independently tested open-source CSL engine.
+- Student workspace remains a separate IndexedDB store; web research records remain in localStorage. No migration or Android Room schema change in this increment.
+- New visual logo concept generated separately; existing deployed SVG/icon is preserved until a compatible app-icon asset set is committed and validated.
+
+**Not production certified.** No assertion of complete cross-platform backup parity, full CSL compliance, or signed Android release.

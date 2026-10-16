@@ -74,3 +74,15 @@ test("all twelve research modules expose contextual help and research-specific f
   await page.getByRole("button",{name:"← Modules"}).click();
  }
 });
+
+test("evidence matrix supports explicit claim status and export",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.locator("#headerNew").click();
+ await page.locator("#projectTitle").fill("Evidence test");
+ await page.getByRole("button",{name:"Save paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Evidence Matrix"}).click();
+ await page.getByRole("button",{name:"Use structured template"}).click();
+ await expect(page.locator("#recordContent")).toContainText("Support status");
+ const [file]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export evidence CSV"}).click()]);
+ expect(file.suggestedFilename()).toBe("am-i-scholar-evidence.csv");
+});
