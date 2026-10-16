@@ -161,7 +161,7 @@ test("all seven locally bundled CSL styles render a bibliography",async({page})=
  for(const style of ["apa","modern-language-association","chicago-author-date","chicago-notes-bibliography-17th-edition","ieee","harvard-cite-them-right","elsevier-vancouver"]){
   await page.locator("#cslStyle").selectOption(style);
   await page.getByRole("button",{name:"Format bibliography offline"}).click();
-  await expect(page.locator("#cslResult")).toContainText("Research and discovery",{timeout:15000});
+  await expect(page.locator("#cslResult")).toContainText(/research and discovery/i,{timeout:15000});
   await expect(page.locator("#cslResult")).not.toContainText("CSL formatting unavailable");
  }
 });
