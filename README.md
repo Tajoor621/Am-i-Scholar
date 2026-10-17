@@ -75,3 +75,6 @@ This project is not affiliated with a university, publisher, or research databas
 ## License
 
 No open-source license has been selected yet. Until a license is added, the repository contents remain subject to the default copyright rules.
+## Official logo and app icons (621/24)
+
+The user-approved black-and-gold academic emblem replaces the previous launcher artwork in the web PWA and Android. The cropped emblem is used for small app icons; the complete logo is available in the downloadable brand-assets package. The repository includes the approved compressed WebP emblem, generated PWA PNG icons (16–512 px), iOS touch icon, Android density-specific launcher PNGs, and adaptive-icon resources. Regenerate sizes with `python brand/generate_assets.py` (Pillow required). Web and `docs/` icon assets are mirrored for GitHub Pages. See [branding documentation](docs/BRANDING_AND_SCREENSHOTS.md).

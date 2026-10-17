@@ -181,3 +181,17 @@ test("CSL-JSON import preserves bibliographic fields on export",async({page})=>{
  expect(data["container-title"]).toBe("Journal X");
  expect(data.author[0].family).toBe("García");
 });
+
+test("approved gold logo is installed at web/PWA icon sizes",async({page,request})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await expect(page.locator('aside .brand img')).toHaveAttribute("src","./brand/icon-master.webp");
+ await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href","./brand/icon-master.webp");
+ const manifest=await (await request.get("http://127.0.0.1:8000/manifest.webmanifest")).json();
+ expect(manifest.icons.some(i=>i.sizes==="192x192"&&i.purpose==="any")).toBeTruthy();
+ expect(manifest.icons.some(i=>i.sizes==="512x512"&&i.purpose==="any")).toBeTruthy();
+ expect(manifest.icons.some(i=>i.sizes==="512x512"&&i.purpose==="maskable")).toBeTruthy();
+ for(const file of ["icon-master.webp","icon-192.png","icon-512.png","icon-maskable-192.png","icon-maskable-512.png","apple-touch-icon.png"]){
+  const response=await request.get("http://127.0.0.1:8000/brand/"+file);
+  expect(response.ok(),file).toBeTruthy();
+ }
+});
