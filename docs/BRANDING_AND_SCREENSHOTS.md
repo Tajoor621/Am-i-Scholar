@@ -1,19 +1,35 @@
-# Am I Scholar — branding and screenshot integrity
+# Official Am I Scholar logo and launcher icon (621/24)
 
-## Official in-app identity
-The launcher icon is a standalone vector mark combining an open book and academic cap, with a navy, white and gold palette. Android resources:
-- `app/src/main/res/drawable/ic_scholar_mark.xml`
-- `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
-- `app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`
-- `app/src/main/res/values/brand_colors.xml`
+The selected source artwork is the black/gold academic logo with graduation cap,
+fountain-pen A, globe, books, and the 621/24 signature.
 
-The vector is original app branding; the larger AI-generated promotional collage is a **concept illustration**, not a screenshot captured from a running application.
+**Use the emblem-only crop for small app icons.** The full wordmark is not legible
+at 48 px and is reserved for branding, documentation, and promotional material.
 
-## Screenshot acceptance policy
-Do not describe conceptual UI renders as real application screenshots. Before publishing store screenshots, capture the installed app with an Android emulator or device, confirm each visible feature actually exists, redact private research data and test the image at phone and tablet sizes.
+## Sources and generated assets
 
-## App manifest
-The manifest references the standalone launcher icon and resource-backed app name, and disables cleartext traffic and automatic backup. No network activity is needed for local research tasks.
+- `brand/icon-master.webp`: actual selected artwork, emblem-only crop (256 px, compressed).
+- `docs/brand/icon-master.webp`: identical GitHub Pages source.
+- `app/src/main/res/drawable-nodpi/ic_scholar_foreground.webp`: same image for Android.
+- `brand/generate_assets.py`: reproducible Pillow-based PNG generation.
+- `brand/icon-{size}.png`: favicons/PWA, 16 through 512 px.
+- `brand/icon-maskable-192.png`, `brand/icon-maskable-512.png`: inset for OS masking.
+- `brand/apple-touch-icon.png`: iPhone/iPad Home Screen icon.
+- `app/src/main/res/mipmap-{density}/ic_launcher.png` and `ic_launcher_round.png`: Android legacy launcher sizes.
+- `app/src/main/res/drawable/ic_scholar_foreground_safe.xml`: adaptive icon safe-zone inset.
+- Root and `docs/` PWA files use the same brand paths.
 
-## Accuracy
-This branding commit does not certify that citation standards, plagiarism checking, AI assistance, accessibility or submission workflows are fully implemented. The zero-mandatory-fee policy remains unchanged.
+The GitHub Actions `Generate approved brand icons` workflow runs on source changes
+and commits the generated PNGs. The always-available WebP is the primary web favicon,
+sidebar icon, and Android foreground, so the app can build before generation finishes.
+
+## Integrity
+
+This is an image of the approved artwork, not a traced substitute.
+Raster upscaling does not create additional photographic detail. For production
+store listing graphics, use the full-resolution source from the separately provided
+brand-assets package. Android adaptive launcher masks may crop peripheral details;
+test on real launchers and dark/light themes.
+
+No app data, Room schema, backup formats, privacy behavior, or research modules
+are changed by this branding update.
