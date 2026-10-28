@@ -71,6 +71,7 @@ test("student calendar imports timezone-aware ICS events and exports them offlin
 });
 
 test("focus timer state and course, paper, and task links survive reload and are logged locally",async({page})=>{
+ page.on("console",message=>{if(message.type()==="error")console.log("Browser console:",message.text())});
  await page.goto("http://127.0.0.1:8000/");
  await page.locator("#headerNew").click();
  await page.locator("#projectTitle").fill("Focus-linked paper");
@@ -89,6 +90,7 @@ test("focus timer state and course, paper, and task links survive reload and are
  const taskId=await page.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const request=indexedDB.open("amischolar-academic-v1");request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});return await new Promise((resolve,reject)=>{const request=db.transaction("tasks").objectStore("tasks").getAll();request.onsuccess=()=>resolve(request.result[0].id);request.onerror=()=>reject(request.error)})});
  const courseKey=await page.evaluate(async()=>{const db=await new Promise(resolve=>{const request=indexedDB.open("amischolar-academic-v1");request.onsuccess=()=>resolve(request.result)});return await new Promise(resolve=>{const request=db.transaction("courses").objectStore("courses").getAll();request.onsuccess=()=>resolve(request.result[0].id)})});
  await page.locator("#academicNav").getByRole("button",{name:"Focus"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Pomodoro focus",{timeout:8000});
  await page.locator('#academicBody select[name="focusCourse"]').selectOption(courseKey);
  await page.locator('#academicBody select[name="focusPaper"]').selectOption(String(paperId));
  await page.locator('#academicBody select[name="focusTask"]').selectOption(taskId);
