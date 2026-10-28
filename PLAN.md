@@ -12,13 +12,14 @@ Baseline reviewed: `main` at the current checkout. The web contains Dashboard, M
 | `node --check tests/characterization.spec.cjs` | PASS: new Playwright specification parses. |
 | `npx playwright test` locally | BLOCKED: browser executable missing; Chromium CDN download repeatedly returned a zero-byte/truncated archive. |
 | Main CI at baseline commit `73e5340` (2026-10-17) | PASS: Web browser E2E, Web PWA verification, Android CI, and Android Emulator Verification runs all completed successfully. |
-| Android tests locally | NOT RUN: no Gradle executable or wrapper is checked in. Baseline Android CI and emulator workflows passed remotely at `73e5340`. |
+| Phase 0 PR CI at code/test commit `4e84189` (2026-10-28) | PASS: Web browser E2E (including all seven new characterization cases), Web PWA verification, Android CI, and Android Emulator Verification all completed successfully. |
+| Android tests locally | NOT RUN: no Gradle executable or wrapper is checked in. Baseline and PR Android build/unit/emulator workflows passed remotely. |
 
-Remote CI establishes a passing baseline for the repository's existing tests at `73e5340`. The local container could not launch Chromium or Gradle. The application code was not changed in this phase, so no application failure has been repaired. The initial four new web characterization tests passed in PR CI. The latest module-wide case and added restore/timer/calendar checks await PR CI.
+Remote CI establishes a passing baseline for existing tests at `73e5340` and for the expanded suite at `4e84189`. The local container could not launch Chromium or Gradle. The application code was not changed in this phase, so no application failure has been repaired.
 
 ## Gaps before implementation
 
-1. Run existing and newly added browser tests on this branch in CI; fix any discovered failures before feature work.
+1. The existing and added browser suites pass in PR CI. Keep them green while closing the remaining feature-to-test gaps.
 2. Add the remaining characterization coverage listed in `docs/FEATURE_INVENTORY.md` before refactoring those behaviors.
 3. Add Android characterization coverage where user-visible behavior is otherwise unverified; latest baseline Android CI and emulator runs passed.
 4. Determine past web backup schemas from repository history and add fixtures/tests before altering persistence or restore code.
