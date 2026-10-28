@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
@@ -133,7 +134,7 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     Scaffold(topBar = { TopAppBar(title = { Text("Student workspace") }, navigationIcon = { OutlinedButton(onClick = onBack) { Text("Back") } }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             ScrollableTabRow(selectedTabIndex = studentTabs.indexOf(selectedTab).coerceAtLeast(0)) {
-                studentTabs.forEach { label -> Tab(selected = selectedTab == label, onClick = { selectedTab = label }, text = { Text(label) }) }
+                studentTabs.forEach { label -> Tab(selected = selectedTab == label, onClick = { selectedTab = label }, modifier = Modifier.testTag("student-tab-${label.lowercase()}"), text = { Text(label) }) }
             }
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),

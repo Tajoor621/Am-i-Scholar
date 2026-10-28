@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
@@ -19,6 +20,7 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
         composeRule.onNodeWithText("Student workspace").assertIsDisplayed()
         composeRule.onNodeWithText("Your coursework and study progress stays on this device.").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Focus").performClick().assertIsSelected()
+        composeRule.onNodeWithTag("student-tab-focus").performClick()
+        composeRule.onNodeWithTag("student-tab-focus").assertIsSelected()
     }
 }
