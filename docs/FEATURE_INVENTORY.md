@@ -80,7 +80,7 @@ Student mode is a separate offline workspace in `student.js`. It uses IndexedDB 
 
 ## Baseline evidence and open gaps
 
-- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 7 in `characterization.spec.cjs`, plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
+- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 9 in `characterization.spec.cjs` (23 total), plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
 - Existing Android tests: 16 Kotlin unit-test files, 4 instrumented-test files, and CI workflows for Android build/unit tests and emulator tests.
 - Current characterization remains incomplete for cases marked UNVERIFIED above. Close gaps before refactoring the corresponding feature.
 - The checked-in `docs/` static-site copy mirrors the web app; any web changes must preserve or deliberately regenerate that copy.
