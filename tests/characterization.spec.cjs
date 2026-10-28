@@ -153,6 +153,39 @@ test("offline literature search reports an error and leaves manual source entry 
  await expect(page.locator("#recordContent")).toBeVisible();
 });
 
+test("federated literature search deduplicates 20 sources and saves Open Access metadata, status, and notes",async({page})=>{
+ const crossref=Array.from({length:10},(_,n)=>({title:["Crossref title "+(n+1)],author:[{given:"Ada",family:"Author"}],DOI:"10.1000/paper-"+(n+1),published:{"date-parts":[[2024]]},"container-title":["Journal A"],abstract:"<jats:p>Crossref abstract</jats:p>"}));
+ const openalex=Array.from({length:10},(_,n)=>({display_name:"OpenAlex title "+(n+6),authorships:[{author:{display_name:"Bea Researcher"}}],publication_year:2023,doi:"https://doi.org/10.1000/paper-"+(n+6),primary_location:{source:{display_name:"Journal B"}},abstract_inverted_index:{Open:[0],Alex:[1],abstract:[2]},open_access:{is_oa:true,oa_status:"gold",best_oa_location:{landing_page_url:"https://oa.example/article"}}}));
+ const pmids=Array.from({length:10},(_,n)=>String(n+1));
+ const articles=pmids.map((id,n)=>`<PubmedArticle><MedlineCitation><PMID>${id}</PMID><Article><ArticleTitle>PubMed title ${n+11}</ArticleTitle><AuthorList><Author><ForeName>Cy</ForeName><LastName>Scholar</LastName></Author></AuthorList><Journal><Title>Journal C</Title><JournalIssue><PubDate><Year>2022</Year></PubDate></JournalIssue></Journal><Abstract><AbstractText Label="RESULTS">PubMed abstract</AbstractText></Abstract><ELocationID EIdType="doi">10.1000/paper-${n+11}</ELocationID></Article></MedlineCitation></PubmedArticle>`).join("");
+ const requestUrls=[];
+ await page.route("https://api.crossref.org/works?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({message:{items:crossref}})})});
+ await page.route("https://api.openalex.org/works?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({results:openalex})})});
+ await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({esearchresult:{idlist:pmids}})})});
+ await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/xml",body:`<?xml version="1.0"?><PubmedArticleSet>${articles}</PubmedArticleSet>`})});
+ await page.route("https://api.unpaywall.org/v2/*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({is_oa:true,oa_status:"gold",best_oa_location:{url_for_pdf:"https://oa.example/fulltext.pdf"}})})});
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Federated search");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("CRISPR off-target effects");
+ await page.locator("#literatureEmail").fill("researcher@example.org");
+ await page.getByRole("button",{name:"Save contact email"}).click();
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults article.record")).toHaveCount(20,{timeout:15000});
+ const first=page.locator("#literatureResults article.record").filter({hasText:"Crossref title 1"});
+ await expect(first).toContainText("Crossref abstract");
+ await expect(first).toContainText("Open access: gold");
+ await expect(first.getByRole("link",{name:"Open full text"})).toHaveAttribute("href","https://oa.example/fulltext.pdf");
+ await first.locator("details select").selectOption("reading");
+ await first.locator("details textarea").fill("Check sample size and methods.");
+ await first.getByRole("button",{name:"Import metadata"}).click();
+ await expect(page.locator("#recordList")).toContainText("Status: reading");
+ await expect(page.locator("#recordList")).toContainText("Notes: Check sample size and methods.");
+ expect(requestUrls.some(url=>new URL(url).searchParams.get("mailto")==="researcher@example.org")).toBeTruthy();
+ expect(requestUrls.some(url=>new URL(url).searchParams.get("email")==="researcher@example.org")).toBeTruthy();
+ expect(requestUrls.some(url=>url.includes("esearch.fcgi"))).toBeTruthy();
+});
+
 test("web, Android, student, evidence, and CSL export entry points remain available",async({page})=>{
  await page.goto("http://127.0.0.1:8000/");
  await createPaper(page,"Export owner");

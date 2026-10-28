@@ -2,18 +2,18 @@
 
 ## Current baseline
 
-This phase upgrades the current web and Android research tools additively. The web Literature Radar currently searches one provider at a time (Crossref or OpenAlex), caps each request at 20 results, and imports records into the existing local source log as unverified metadata. The web does not currently search PubMed, request contact email, provide Open Access links, or store source status/notes as structured fields. The Citation Center has offline CSL formatting and CSL-JSON import/export; it does not yet import/export BibTeX or RIS. No PDF reader is present in the web app.
+This phase upgrades the research tools additively. The web Literature Radar now searches Crossref, OpenAlex, and PubMed concurrently by default, with provider selection, a 20-result cap per provider, DOI-first deduplication, optional contact email, Unpaywall Open Access enrichment, and local source status/notes. Imported metadata remains unverified. The Citation Center has offline CSL formatting and CSL-JSON import/export; BibTeX/RIS import/export and a local PDF reader remain later increments.
 
-Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositories plus Room-backed source records and backup/export flows. New web capabilities must be scoped for Android in the same phase or explicitly recorded as web-only.
+Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositories plus Room-backed source records and backup/export flows. The federated search UI in this increment is web-only; Android parity and its provider-specific rate/error behavior remain tracked work, not an implied delivery.
 
 ## Increment 1: federated literature discovery
 
 1. Characterize the current OpenAlex result/import path and offline/error behavior before implementation. These tests are in `tests/characterization.spec.cjs` on the Phase 1 branch and must pass in CI first.
-2. Search Crossref, OpenAlex, and PubMed concurrently by default; preserve the existing per-provider selection as an option.
+2. Search Crossref, OpenAlex, and PubMed concurrently by default; preserve per-provider selection as an option. (Implemented in this increment.)
 3. Normalize titles, authors, year, venue, abstract, DOI, provider, and Open Access information from returned provider metadata. Deduplicate primarily by normalized DOI and secondarily by title/year/first author.
-4. Add a local, user-configurable contact email. Send it only with explicit literature searches to the providers that request identification. Keep the preference on-device and disclose its use in the UI.
+4. Add a local, user-configurable contact email. Send it only with explicit literature searches to providers that request identification and Unpaywall when enriching DOI results. Keep the preference on-device and disclose its use in the UI. (Implemented in this increment.)
 5. Show partial-provider failures and offline state clearly. A failed provider must not hide successful results from the other providers.
-6. Keep imported metadata marked unverified. Save each result in the existing source library, with researcher-editable status (`to-read`, `reading`, or `cited`) and notes.
+6. Keep imported metadata marked unverified. Save each result in the existing source library, with researcher-editable status (`to-read`, `reading`, or `cited`) and notes. (Implemented in this increment.)
 
 ### Acceptance checks
 
@@ -25,7 +25,7 @@ Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositorie
 
 ## Later increments
 
-- Add Unpaywall DOI lookups for Open Access locations when the user has provided a contact email. Do not call Unpaywall's retired search endpoint.
+- Verify live-provider browser CORS and rate behavior beyond the mocked browser acceptance cases; document provider-specific limitations.
 - Add BibTeX and RIS import/export while preserving existing exports.
 - Add citation-field warnings without changing the existing formatted output for an unchanged input.
 - Vendor and pin pdf.js; add local PDF viewing, highlights, and notes.
