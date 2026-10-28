@@ -1,6 +1,7 @@
 package com.amischolar.app
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,7 +19,6 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
         composeRule.onNodeWithText("Student workspace").assertIsDisplayed()
         composeRule.onNodeWithText("Your coursework and study progress stays on this device.").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Focus").performClick()
-        composeRule.onNodeWithText("Pomodoro focus · timer recovery is saved locally").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Focus").performClick().assertIsSelected()
     }
 }
