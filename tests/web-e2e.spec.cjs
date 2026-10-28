@@ -40,7 +40,7 @@ test("live literature metadata search imports a source without claiming verifica
  await page.locator("#literatureQuery").fill("chromosome organization");
  await page.getByRole("button",{name:"Search research metadata"}).click();
  await expect(page.locator("#literatureResults")).toContainText("Verified metadata test");
- await page.getByRole("button",{name:"Import metadata"}).click();
+ await page.locator("#literatureResults article.record").first().getByRole("button",{name:"Import metadata"}).click();
  await expect(page.locator("#recordList")).toContainText("Verified metadata test");
  await expect(page.locator("#recordList")).toContainText("Verified against original: No");
 });

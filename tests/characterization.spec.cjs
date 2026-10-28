@@ -172,7 +172,7 @@ test("federated literature search deduplicates 20 sources and saves Open Access 
  await page.getByRole("button",{name:"Save contact email"}).click();
  await page.getByRole("button",{name:"Search research metadata"}).click();
  await expect(page.locator("#literatureResults article.record")).toHaveCount(20,{timeout:15000});
- const first=page.locator("#literatureResults article.record").filter({hasText:"Crossref title 1"});
+ const first=page.locator("#literatureResults article.record").nth(0);
  await expect(first).toContainText("Crossref abstract");
  await expect(first).toContainText("Open access: gold");
  await expect(first.getByRole("link",{name:"Open full text"})).toHaveAttribute("href","https://oa.example/fulltext.pdf");
