@@ -176,6 +176,7 @@ test("federated literature search deduplicates 20 sources and saves Open Access 
  await expect(first).toContainText("Crossref abstract");
  await expect(first).toContainText("Open access: gold");
  await expect(first.getByRole("link",{name:"Open full text"})).toHaveAttribute("href","https://oa.example/fulltext.pdf");
+ await first.locator("details summary").click();
  await first.locator("details select").selectOption("reading");
  await first.locator("details textarea").fill("Check sample size and methods.");
  await first.getByRole("button",{name:"Import metadata"}).click();
