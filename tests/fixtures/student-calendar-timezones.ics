@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Am I Scholar//Student Tools//EN
+BEGIN:VEVENT
+UID:dst-transition@example.test
+DTSTART;TZID=America/New_York:20260308T013000
+DTEND;TZID=America/New_York:20260308T033000
+SUMMARY:Spring-forward seminar
+DESCRIPTION:Bring slides\, questions\; and notes
+END:VEVENT
+BEGIN:VEVENT
+UID:all-day-study@example.test
+DTSTART;VALUE=DATE:20260309
+DTEND;VALUE=DATE:20260310
+SUMMARY:All-day study fair
+END:VEVENT
+BEGIN:VEVENT
+UID:utc-workshop@example.test
+DTSTART:20261028T120000Z
+DTEND:20261028T130000Z
+SUMMARY:UTC workshop
+END:VEVENT
+BEGIN:VEVENT
+UID:folded-summary@example.test
+DTSTART;TZID=Asia/Dubai:20261029T090000
+DTEND;TZID=Asia/Dubai:20261029T100000
+SUMMARY:Folded conference session that continues
+  with a second line
+END:VEVENT
+END:VCALENDAR

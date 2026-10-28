@@ -1,5 +1,29 @@
 const {test,expect}=require("@playwright/test");
 const fs=require("node:fs/promises");
+const {parseICS,serializeICS,formatWhen}=require("../calendar-ics.js");
+
+test("ICS import parses timezones, DST transitions, folded text, escapes, and all-day dates",async()=>{
+ const source=await fs.readFile("tests/fixtures/student-calendar-timezones.ics","utf8");
+ const {events}=parseICS(source);
+ expect(events).toHaveLength(4);
+ const dst=events.find(event=>event.uid==="dst-transition@example.test");
+ expect(new Date(dst.startAt).toISOString()).toBe("2026-03-08T06:30:00.000Z");
+ expect(new Date(dst.endAt).toISOString()).toBe("2026-03-08T07:30:00.000Z");
+ expect(dst.timeZone).toBe("America/New_York");
+ expect(dst.description).toBe("Bring slides, questions; and notes");
+ expect(formatWhen(dst,"America/Los_Angeles")).toContain("Mar 7, 2026, 10:30 PM");
+ expect(formatWhen(dst,"Asia/Dubai")).toContain("Mar 8, 2026, 10:30 AM");
+ const allDay=events.find(event=>event.uid==="all-day-study@example.test");
+ expect(allDay).toMatchObject({allDay:true,startDate:"2026-03-09",endDateExclusive:"2026-03-10"});
+ const utc=events.find(event=>event.uid==="utc-workshop@example.test");
+ expect(utc.startAt).toBe(Date.parse("2026-10-28T12:00:00Z"));
+ const folded=events.find(event=>event.uid==="folded-summary@example.test");
+ expect(folded.title).toBe("Folded conference session that continues with a second line");
+ const serialized=parseICS(serializeICS(events));
+ expect(serialized.events).toHaveLength(4);
+ expect(serialized.events.find(event=>event.uid===dst.uid).startAt).toBe(dst.startAt);
+ expect(serialized.events.find(event=>event.uid===allDay.uid).endDateExclusive).toBe("2026-03-10");
+});
 
 async function createPaper(page,title="Characterization paper"){
  await page.locator("#headerNew").click();

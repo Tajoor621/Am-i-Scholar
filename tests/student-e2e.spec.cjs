@@ -1,4 +1,5 @@
 const {test,expect}=require("@playwright/test");
+const fs=require("node:fs/promises");
 test("student mode keeps existing researcher modules and supports course, task, notes and deck",async({page})=>{
  await page.goto("http://127.0.0.1:8000/");
  await page.getByRole("button",{name:"Student Mode"}).click();
@@ -42,4 +43,29 @@ test("student flashcard study updates review history offline",async({page})=>{
  await page.getByRole("button",{name:"Reveal answer"}).click();
  await page.getByRole("button",{name:"good",exact:true}).click();
  await expect(page.locator("#academicBody")).toContainText("No cards due right now.");
+});
+
+test("student calendar imports timezone-aware ICS events and exports them offline",async({browser})=>{
+ const context=await browser.newContext({timezoneId:"Asia/Dubai",acceptDownloads:true});
+ const page=await context.newPage();
+ await page.goto("http://127.0.0.1:8000/");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Calendar"}).click();
+ await page.locator("#calendarIcsFile").setInputFiles({name:"student-timezones.ics",mimeType:"text/calendar",buffer:await fs.readFile("tests/fixtures/student-calendar-timezones.ics")});
+ await expect(page.locator("#calendarIcsStatus")).toContainText("4 calendar event(s) imported.");
+ await page.locator('#academicBody input[type="month"]').fill("2026-03");
+ await page.locator("#academicBody h2").click();
+ await expect(page.locator("#academicBody")).toContainText("Spring-forward seminar");
+ await expect(page.locator("#academicBody")).toContainText("10:30 AM");
+ await expect(page.locator("#academicBody")).toContainText("All-day study fair");
+ await page.locator("#calendarIcsFile").setInputFiles({name:"student-timezones.ics",mimeType:"text/calendar",buffer:await fs.readFile("tests/fixtures/student-calendar-timezones.ics")});
+ await page.locator('#academicBody input[type="month"]').fill("2026-03");await page.locator("#academicBody h2").click();
+ await expect(page.locator("#academicBody .record").filter({hasText:"Spring-forward seminar"})).toHaveCount(1);
+ const [download]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export ICS"}).click()]);
+ expect(download.suggestedFilename()).toBe("am-i-scholar-calendar.ics");
+ const exported=await fs.readFile(await download.path(),"utf8");
+ expect(exported).toContain("SUMMARY:Spring-forward seminar");
+ expect(exported).toContain("DTSTART;VALUE=DATE:20260309");
+ expect(exported.match(/BEGIN:VEVENT/g)).toHaveLength(4);
+ await context.close();
 });
