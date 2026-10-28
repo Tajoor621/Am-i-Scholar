@@ -1,1 +1,1 @@
-module.exports={testDir:"./tests",testMatch:["web-e2e.spec.cjs","student-e2e.spec.cjs"],timeout:30000,use:{browserName:"chromium",headless:true,acceptDownloads:true},reporter:"list"};
+module.exports={testDir:"./tests",testMatch:["web-e2e.spec.cjs","student-e2e.spec.cjs","characterization.spec.cjs"],timeout:30000,use:{browserName:"chromium",headless:true,acceptDownloads:true},reporter:"list"};
