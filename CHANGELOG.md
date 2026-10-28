@@ -8,3 +8,5 @@
 - Import metadata as explicitly unverified local source records with provider, abstract, Open Access details, fetched time, reading status, and notes.
 - Update privacy disclosure, source-library status display, feature inventory, and mirrored GitHub Pages app files.
 - Add mocked browser coverage for federated results, deduplication, provider email parameters, and source import fields.
+- Add local BibTeX/RIS import-export for common bibliographic fields and advisory citation metadata warnings separate from CSL output.
+- Add mocked round-trip and warning-isolation coverage; include the new converter in the offline PWA cache.

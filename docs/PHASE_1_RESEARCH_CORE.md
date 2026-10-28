@@ -2,7 +2,7 @@
 
 ## Current baseline
 
-This phase upgrades the research tools additively. The web Literature Radar now searches Crossref, OpenAlex, and PubMed concurrently by default, with provider selection, a 20-result cap per provider, DOI-first deduplication, optional contact email, Unpaywall Open Access enrichment, and local source status/notes. Imported metadata remains unverified. The Citation Center has offline CSL formatting and CSL-JSON import/export; BibTeX/RIS import/export and a local PDF reader remain later increments.
+This phase upgrades the research tools additively. The web Literature Radar now searches Crossref, OpenAlex, and PubMed concurrently by default, with provider selection, a 20-result cap per provider, DOI-first deduplication, optional contact email, Unpaywall Open Access enrichment, and local source status/notes. Imported metadata remains unverified. Citation Center now supports offline CSL formatting plus CSL-JSON, BibTeX, and RIS import/export; missing-field warnings are separate from formatted output. A local PDF reader remains a later increment.
 
 Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositories plus Room-backed source records and backup/export flows. The federated search UI in this increment is web-only; Android parity and its provider-specific rate/error behavior remain tracked work, not an implied delivery.
 
@@ -26,8 +26,7 @@ Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositorie
 ## Later increments
 
 - Verify live-provider browser CORS and rate behavior beyond the mocked browser acceptance cases; document provider-specific limitations.
-- Add BibTeX and RIS import/export while preserving existing exports.
-- Add citation-field warnings without changing the existing formatted output for an unchanged input.
+- Verify BibTeX/RIS round trips against a broader fixture set, including less common entry and tag variants.
 - Vendor and pin pdf.js; add local PDF viewing, highlights, and notes.
 - Keep Android search, backup, and export behavior covered; add Android scope notes for web-only features.
 
@@ -37,3 +36,10 @@ Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositorie
 - Keep every search user-initiated. Search queries and the configured email are sent only as disclosed in the UI; imported user research records remain local.
 - Do not mark metadata as verified merely because a provider returned it.
 - Document changed behavior in `CHANGELOG.md` and update the feature inventory, README feature table, and root/`docs/` static mirrors with only verified capabilities.
+
+## Increment 2: portable references and metadata checks
+
+- Import and export common BibTeX entry types and RIS tags through the existing local citation records; keep the original CSL-JSON and CSL bibliography workflows available.
+- Preserve known authors, title, venue, year, volume/issue, pages, DOI, URL, publisher, and abstract. Do not fill absent facts.
+- Display advisory warnings for missing core citation fields in a separate panel; the same records must produce unchanged CSL output.
+- Acceptance: mocked BibTeX and RIS round trips preserve common fields, citations with missing fields display warnings, and CSL output stays free of warning text.

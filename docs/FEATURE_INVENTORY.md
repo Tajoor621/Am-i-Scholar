@@ -18,7 +18,7 @@ This inventory records observable entry points, persistence touched, and existin
 | Outline Architect | Open Outline Architect | Reads/writes project records in `amischolar.web.v2` | Contextual-help and characterization tests check its guidance/template. Saved-outline analysis: UNVERIFIED. |
 | Draft Studio | Open Draft Studio | Reads/writes project records; exports draft text, Markdown, HTML, and print dialog content | Tests cover Markdown, TXT, HTML download, and print-window content. Actual PDF printing depends on the browser print dialog: UNVERIFIED. |
 | Style Coach | Open Style Coach | Reads draft records; writes revision records in `amischolar.web.v2` | Contextual-help and characterization tests check its guidance/template. Signal output with varied drafts: UNVERIFIED. |
-| Citation Center | Open Citation Center | Reads/writes citation/source records; uses bundled citeproc and CSL assets; imports/exports CSL-JSON | Tests cover metadata export, CSL-JSON import, all 7 bundled CSL style identifiers, bibliography formatting for all 7, and bibliography Markdown download; characterization checks workflow guidance/template and asserts the six paper-form choices. |
+| Citation Center | Open Citation Center | Reads/writes citation/source records; uses bundled citeproc and CSL assets; imports/exports CSL-JSON, BibTeX, and RIS; shows separate missing-field warnings | Tests cover metadata export, CSL-JSON and BibTeX/RIS import/export, all 7 bundled CSL style identifiers, bibliography formatting for all 7, bibliography Markdown download, and warnings isolated from formatted output. |
 | Originality & Integrity | Open Originality & Integrity | Reads/writes project records; reports checklist-style guidance, not external plagiarism results | Contextual-help and characterization tests check guidance/template. Saved-record behavior: UNVERIFIED. |
 | Review Simulator | Open Review Simulator | Reads/writes researcher records; simulated checklist only | Contextual-help and characterization tests check checklist/template. Saved-record behavior: UNVERIFIED. |
 | Submission Kit | Open Submission Kit | Reads/writes project records | Contextual-help and characterization tests check due-diligence guidance/template. Saved-record checks: UNVERIFIED. |
@@ -75,12 +75,14 @@ Student mode is a separate offline workspace in `student.js`. It uses IndexedDB 
 | Print-ready manuscript HTML (`am-i-scholar-manuscript.html`) | Draft Studio | Paper title and draft records | `characterization.spec.cjs` checks filename. |
 | Print / Save PDF (browser print dialog; no fixed filename) | Draft Studio | Paper title and draft records | `characterization.spec.cjs` checks print-window content; final PDF output is browser-controlled. |
 | CSL-JSON metadata (`am-i-scholar-csl-data.json`) | Citation Center | Current paper’s citation/source records | Filename tested; roundtrip field preservation tested. |
+| BibTeX bibliography (`am-i-scholar-bibliography.bib`) | Citation Center | Current paper’s citation/source records | Import/export roundtrip for common article metadata tested. |
+| RIS bibliography (`am-i-scholar-bibliography.ris`) | Citation Center | Current paper’s citation/source records | Import/export roundtrip for common journal metadata tested. |
 | CSL bibliography Markdown (`am-i-scholar-csl-bibliography.md`) | Citation Center | Formatted bibliography from saved metadata | `characterization.spec.cjs` checks filename. |
 | Android document exports (plain text, DOCX, PDF, and project backup JSON via Android document provider) | Android workspace export controls | Current project, notes and sources | `DocumentConformanceTest`, `ExportInstrumentedTest`, `ProjectBackupInstrumentedTest`; export-by-export: UNVERIFIED. |
 
 ## Baseline evidence and open gaps
 
-- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 9 in `characterization.spec.cjs` (23 total), plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
+- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 11 in `characterization.spec.cjs` (25 total), plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
 - Existing Android tests: 16 Kotlin unit-test files, 4 instrumented-test files, and CI workflows for Android build/unit tests and emulator tests.
 - Current characterization remains incomplete for cases marked UNVERIFIED above. Close gaps before refactoring the corresponding feature.
 - The checked-in `docs/` static-site copy mirrors the web app; any web changes must preserve or deliberately regenerate that copy.

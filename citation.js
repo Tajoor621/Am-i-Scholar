@@ -47,11 +47,13 @@ const CitationWorkspace = (() => {
   if(!result)return [];
   return result[1];
  }
+ function metadataWarnings(items){return items.map(item=>{const missing=[];if(!Array.isArray(item.author)||!item.author.length)missing.push("author");const year=item.issued?.["date-parts"]?.[0]?.[0];if(!year)missing.push("year");if(!item.title)missing.push("title");if(item.type==="article-journal"&&!item["container-title"])missing.push("journal");if(["book","chapter"].includes(item.type)&&!item.publisher)missing.push("publisher");return {title:item.title||"Untitled source",missing}}).filter(x=>x.missing.length)}
  function render(root,records,parse,download){
   root.replaceChildren();
   const box=document.createElement("div");box.className="feature";
   const heading=document.createElement("h3");heading.textContent="Offline CSL bibliography";
   const notice=document.createElement("p");notice.textContent="Draft citation — verify against original source and target journal requirements. Formatting uses locally bundled CSL styles; metadata is not independently verified.";
+  const warnings=document.createElement("div");warnings.id="citationWarnings";warnings.className="feature";warnings.setAttribute("aria-label","Citation metadata warnings");warnings.append(Object.assign(document.createElement("h4"),{textContent:"Metadata completeness warnings"}));
   const label=document.createElement("label");label.textContent="Citation style";
   const select=document.createElement("select");select.id="cslStyle";
   for(const [value,title] of styles){const o=document.createElement("option");o.value=value;o.textContent=title;select.append(o)}
@@ -59,7 +61,7 @@ const CitationWorkspace = (() => {
   const btn=document.createElement("button");btn.type="button";btn.textContent="Format bibliography offline";
   const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.textContent="Export CSL bibliography Markdown";exportBtn.disabled=true;
   const result=document.createElement("div");result.id="cslResult";result.setAttribute("aria-live","polite");
-  const items=records.map(r=>cslItem(r,parse));let output=[];
+  const items=records.map(r=>cslItem(r,parse));let output=[];const gaps=metadataWarnings(items);if(!items.length)warnings.append(Object.assign(document.createElement("p"),{textContent:"Add source records to check their metadata."}));else if(!gaps.length)warnings.append(Object.assign(document.createElement("p"),{textContent:"No basic metadata gaps detected. Verify all fields against the original source."}));else gaps.forEach(entry=>{const p=document.createElement("p");p.textContent=entry.title+": Missing "+entry.missing.join(", ");warnings.append(p)});
   btn.onclick=async()=>{btn.disabled=true;exportBtn.disabled=true;result.textContent="Formatting locally…";
    try{output=await bibliography(items,select.value);result.replaceChildren();
     if(!output.length)result.textContent="No references available. Add source records first.";
@@ -70,8 +72,8 @@ const CitationWorkspace = (() => {
   };
   exportBtn.onclick=()=>{if(!output.length)return;const txt="# Bibliography\n\n> Draft citations: verify against original sources and journal requirements.\n\n"+output.map(x=>safeRich(x).textContent.trim()).join("\n\n");download("am-i-scholar-csl-bibliography.md",txt,"text/markdown")};
   const toolbar=document.createElement("div");toolbar.className="toolbar";toolbar.append(btn,exportBtn);
-  box.append(heading,notice,label,toolbar,result);root.append(box);
+  box.append(heading,notice,warnings,label,toolbar,result);root.append(box);
   if(!items.length)result.textContent="Add a source in Citation Center or Literature Radar to format a bibliography.";
  }
- return {styles,cslItem,bibliography,render};
+ return {styles,cslItem,bibliography,metadataWarnings,render};
 })();

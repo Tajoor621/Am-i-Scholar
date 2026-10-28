@@ -1,4 +1,5 @@
 const {test,expect}=require("@playwright/test");
+const fs=require("node:fs/promises");
 
 async function createPaper(page,title="Characterization paper"){
  await page.locator("#headerNew").click();
@@ -222,4 +223,37 @@ test("web, Android, student, evidence, and CSL export entry points remain availa
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const [student]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export student JSON"}).click()]);
  expect(student.suggestedFilename()).toBe("am-i-scholar-academic-backup.json");
+});
+
+test("BibTeX and RIS imports preserve common fields and export back to each format",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"Bibliography portability");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ page.on("dialog",dialog=>dialog.accept());
+ let chooserPromise=page.waitForEvent("filechooser");
+ await page.getByRole("button",{name:"Import BibTeX"}).click();
+ let chooser=await chooserPromise;
+ await chooser.setFiles({name:"sources.bib",mimeType:"application/x-bibtex",buffer:Buffer.from("@article{doe2024, author={Doe, Jane and Smith, John}, title={A {Robust} Study}, journal={Journal of Tests}, year={2024}, volume={8}, number={2}, pages={10--18}, doi={10.1234/test}}","utf8")});
+ await expect(page.locator("#recordList")).toContainText("A Robust Study");
+ chooserPromise=page.waitForEvent("filechooser");
+ await page.getByRole("button",{name:"Import RIS"}).click();chooser=await chooserPromise;
+ await chooser.setFiles({name:"sources.ris",mimeType:"application/x-research-info-systems",buffer:Buffer.from("TY  - JOUR\nID  - smith2023\nAU  - Smith, Alice\nTI  - RIS Sample Paper\nJO  - Research Journal\nPY  - 2023\nVL  - 5\nIS  - 1\nSP  - 20\nEP  - 29\nDO  - 10.5678/ris\nER  - ","utf8")});
+ await expect(page.locator("#recordList")).toContainText("RIS Sample Paper");
+ const [bib]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export BibTeX"}).click()]);
+ expect(bib.suggestedFilename()).toBe("am-i-scholar-bibliography.bib");
+ const bibText=await fs.readFile(await bib.path(),"utf8");expect(bibText).toContain("title = {A Robust Study}");expect(bibText).toContain("10.1234/test");expect(bibText).toContain("RIS Sample Paper");
+ const [ris]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export RIS"}).click()]);
+ expect(ris.suggestedFilename()).toBe("am-i-scholar-bibliography.ris");
+ const risText=await fs.readFile(await ris.path(),"utf8");expect(risText).toContain("TI  - A Robust Study");expect(risText).toContain("DO  - 10.1234/test");expect(risText).toContain("TI  - RIS Sample Paper");
+});
+
+test("citation metadata warnings stay separate from unchanged formatted output",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"Citation warnings");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ await page.locator("#recordTitle").fill("Minimal Evidence");await page.locator("#recordContent").fill("Title: Minimal Evidence");
+ await page.getByRole("button",{name:"Save record"}).click();
+ await expect(page.locator("#citationWarnings")).toContainText("Missing author");
+ await expect(page.locator("#citationWarnings")).toContainText("Missing year");
+ await page.getByRole("button",{name:"Format bibliography offline"}).click();
+ await expect(page.locator("#cslResult")).toContainText("Minimal Evidence");
+ await expect(page.locator("#cslResult")).not.toContainText("Missing author");
 });

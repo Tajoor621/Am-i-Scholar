@@ -39,7 +39,7 @@
 - Literature Radar can search Crossref, OpenAlex, and PubMed concurrently, or search one provider. Results are merged by DOI and remain explicitly unverified.
 - An optional contact email is stored in this browser and sent with searches to providers that request it. When supplied, it also enables per-DOI Unpaywall Open Access lookups.
 - Imported sources retain provider, abstract, Open Access details, reading status, notes, and fetched time in the existing local source records. Search queries and email are sent only after the researcher starts a search; provider availability and browser CORS can affect results.
-- Citation Center retains offline CSL formatting and CSL-JSON import/export. BibTeX/RIS and the browser PDF reader remain later work.
+- Citation Center provides offline CSL formatting, CSL-JSON/BibTeX/RIS import-export, and separate warnings for missing citation metadata. The browser PDF reader remains later work.
 
 These web changes do not add new Android UI; Android parity is tracked in [Phase 1](docs/PHASE_1_RESEARCH_CORE.md).
 
