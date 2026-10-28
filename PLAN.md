@@ -14,7 +14,7 @@ Baseline reviewed: `main` at the current checkout. The web contains Dashboard, M
 | Main CI at baseline commit `73e5340` (2026-10-17) | PASS: Web browser E2E, Web PWA verification, Android CI, and Android Emulator Verification runs all completed successfully. |
 | Android tests locally | NOT RUN: no Gradle executable or wrapper is checked in. Baseline Android CI and emulator workflows passed remotely at `73e5340`. |
 
-Remote CI establishes a passing baseline for the repository's existing tests at `73e5340`. The local container could not launch Chromium or Gradle. The application code was not changed in this phase, so no application failure has been repaired. Four new web characterization tests are pending CI on this branch.
+Remote CI establishes a passing baseline for the repository's existing tests at `73e5340`. The local container could not launch Chromium or Gradle. The application code was not changed in this phase, so no application failure has been repaired. The initial four new web characterization tests passed in PR CI; the latest fifth module-wide test awaits PR CI.
 
 ## Gaps before implementation
 

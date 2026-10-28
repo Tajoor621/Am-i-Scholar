@@ -27,6 +27,9 @@ test("paper form preserves six citation choices; edit, switch, and record clear 
  await page.locator("#recordContent").fill("Unsaved content");
  await page.getByRole("button",{name:"Clear",exact:true}).click();
  await expect(page.locator("#recordTitle")).toHaveValue("");
+ page.once("dialog",dialog=>dialog.accept());
+ await page.getByRole("button",{name:"Delete",exact:true}).click();
+ await expect(page.locator("#recordList")).toContainText("No records yet");
  await page.getByRole("button",{name:"Edit paper"}).click();
  await page.locator("#projectTitle").fill("Paper One edited");
  await page.getByRole("button",{name:"Save paper"}).click();
@@ -47,6 +50,32 @@ test("connection indicator follows browser online and offline events",async({pag
  await expect(page.locator("#connection")).toContainText("Offline");
  await page.evaluate(()=>{Object.defineProperty(navigator,"onLine",{configurable:true,value:true});window.dispatchEvent(new Event("online"))});
  await expect(page.locator("#connection")).toContainText("Online");
+});
+
+test("each research module opens its distinct baseline workflow and structured template",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Module inventory");
+ const cases=[
+  ["Topic Lab","Question quality checks","Population or system"],
+  ["Literature Radar","Live scholarly literature search","Authors:"],
+  ["Evidence Matrix","Evidence traceability","Support status:"],
+  ["Outline Architect","Outline coverage","Research gap:"],
+  ["Draft Studio","Draft word count","Abstract:"],
+  ["Style Coach","Offline writing signals","Original paragraph:"],
+  ["Citation Center","Reference metadata audit","DOI or official URL:"],
+  ["Originality & Integrity","Human review required","Direct quotations and page numbers:"],
+  ["Review Simulator","Simulated reviewer checklist","Comment / potential concern:"],
+  ["Submission Kit","Journal due diligence","Official HTTPS author-guidelines URL:"],
+  ["Revision & Response","Save two revision records","Reviewer comment:"],
+  ["Archive & Reproducibility","portable backup","Reproduction checklist:"]
+ ];
+ for(const [name,toolText,templateText] of cases){
+  await page.locator("#allModules").getByRole("button",{name:"Open "+name}).click();
+  await expect(page.locator("#toolPanel")).toContainText(toolText);
+  await page.getByRole("button",{name:"Use structured template"}).click();
+  expect(await page.locator("#recordContent").inputValue()).toContain(templateText);
+  await page.getByRole("button",{name:"← Modules"}).click();
+ }
 });
 
 test("source library opens saved source records; legacy web and Android backups restore",async({page})=>{
@@ -84,6 +113,10 @@ test("web, Android, student, evidence, and CSL export entry points remain availa
  expect(draft.suggestedFilename()).toBe("am-i-scholar-draft.txt");
  const [html]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export print-ready HTML"}).click()]);
  expect(html.suggestedFilename()).toBe("am-i-scholar-manuscript.html");
+ const popupPromise=page.waitForEvent("popup");
+ await page.getByRole("button",{name:"Print / Save PDF"}).click();
+ const popup=await popupPromise;
+ await expect(popup.locator("pre")).toContainText("A draft paragraph.");
  await page.getByRole("button",{name:"← Modules"}).click();
  await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
  await page.locator("#recordTitle").fill("Reference");
