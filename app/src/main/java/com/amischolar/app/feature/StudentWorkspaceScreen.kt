@@ -34,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -100,9 +99,8 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     var revealed by remember { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<JSONObject?>(null) }
     var backupBytes by remember { mutableStateOf<ByteArray?>(null) }
-    val now by produceState(System.currentTimeMillis(), timer) {
-        while (true) { value = System.currentTimeMillis(); delay(1000) }
-    }
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(timer) { while (true) { now = System.currentTimeMillis(); delay(1000) } }
     val importIcs = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
             try {

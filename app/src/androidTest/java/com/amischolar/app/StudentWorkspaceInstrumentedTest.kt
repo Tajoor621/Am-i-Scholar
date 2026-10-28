@@ -16,7 +16,7 @@ class StudentWorkspaceInstrumentedTest {
     @Test fun studentWorkspaceOpensWithLocalCoursesTasksAndFocus() {
         composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
         composeRule.onNodeWithText("Student workspace").assertIsDisplayed()
-        composeRule.onNodeWithText("Courses").assertIsDisplayed()
+        composeRule.onNodeWithText("Your coursework and study progress stays on this device.").assertIsDisplayed()
         composeRule.onNodeWithText("Focus").performClick()
         composeRule.onNodeWithText("Pomodoro focus · timer recovery is saved locally").assertIsDisplayed()
     }
