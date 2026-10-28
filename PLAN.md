@@ -12,7 +12,7 @@ Baseline reviewed: `main` at the current checkout. The web contains Dashboard, M
 | `node --check tests/characterization.spec.cjs` | PASS: new Playwright specification parses. |
 | `npx playwright test` locally | BLOCKED: browser executable missing; Chromium CDN download repeatedly returned a zero-byte/truncated archive. |
 | Main CI at baseline commit `73e5340` (2026-10-17) | PASS: Web browser E2E, Web PWA verification, Android CI, and Android Emulator Verification runs all completed successfully. |
-| Phase 0 PR CI at code/test commit `4e84189` (2026-10-28) | PASS: Web browser E2E (including all seven new characterization cases), Web PWA verification, Android CI, and Android Emulator Verification all completed successfully. |
+| Phase 0 PR CI at code/test commit `4e84189` (2026-10-28) | PASS: Web browser E2E (including all six new characterization cases), Web PWA verification, Android CI, and Android Emulator Verification all completed successfully. |
 | Android tests locally | NOT RUN: no Gradle executable or wrapper is checked in. Baseline and PR Android build/unit/emulator workflows passed remotely. |
 
 Remote CI establishes a passing baseline for existing tests at `73e5340` and for the expanded suite at `4e84189`. The local container could not launch Chromium or Gradle. The application code was not changed in this phase, so no application failure has been repaired.
