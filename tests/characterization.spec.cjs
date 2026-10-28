@@ -246,7 +246,10 @@ test("web, Android, student, evidence, and CSL export entry points remain availa
  await page.getByRole("button",{name:"Researcher Mode"}).click();
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const [student]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export student JSON"}).click()]);
- expect(student.suggestedFilename()).toBe("am-i-scholar-academic-backup.json");
+ expect(student.suggestedFilename()).toBe("am-i-scholar-student-backup.json");
+ const exported=JSON.parse(await fs.readFile(await student.path(),"utf8"));
+ expect(exported).toMatchObject({format:"am-i-scholar-student",version:1});
+ expect(exported.data).toMatchObject({courses:[],tasks:[],notes:[],decks:[],cards:[],reviews:[],sessions:[],calendarEvents:[],activeTimer:null});
 });
 
 test("BibTeX and RIS imports preserve common fields and export back to each format",async({page})=>{

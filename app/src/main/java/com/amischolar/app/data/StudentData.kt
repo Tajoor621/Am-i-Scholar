@@ -152,31 +152,53 @@ data class StudentCalendarEvent(
 
 @Dao
 interface StudentWorkspaceDao {
+    @Query("SELECT * FROM student_courses ORDER BY id") suspend fun backupCourses(): List<StudentCourse>
+    @Query("SELECT * FROM student_tasks ORDER BY id") suspend fun backupTasks(): List<StudentTask>
+    @Query("SELECT * FROM student_notes ORDER BY id") suspend fun backupNotes(): List<StudentNote>
+    @Query("SELECT * FROM student_decks ORDER BY id") suspend fun backupDecks(): List<StudentDeck>
+    @Query("SELECT * FROM student_cards ORDER BY id") suspend fun backupCards(): List<StudentCard>
+    @Query("SELECT * FROM student_reviews ORDER BY id") suspend fun backupReviews(): List<StudentReview>
+    @Query("SELECT * FROM student_sessions ORDER BY id") suspend fun backupSessions(): List<StudentStudySession>
+    @Query("SELECT * FROM student_active_timer WHERE id=1") suspend fun backupActiveTimer(): StudentActiveTimer?
     @Query("SELECT * FROM student_courses ORDER BY name COLLATE NOCASE") fun observeCourses(): Flow<List<StudentCourse>>
     @Query("SELECT * FROM student_courses ORDER BY name COLLATE NOCASE") suspend fun getCourses(): List<StudentCourse>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertCourse(course: StudentCourse): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupCourse(course: StudentCourse): Long
     @Delete suspend fun deleteCourse(course: StudentCourse)
 
     @Query("SELECT * FROM student_tasks ORDER BY CASE WHEN dueDate='' THEN '9999-12-31' ELSE dueDate END, priority") fun observeTasks(): Flow<List<StudentTask>>
     @Query("SELECT * FROM student_tasks ORDER BY dueDate, priority") suspend fun getTasks(): List<StudentTask>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertTask(task: StudentTask): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupTask(task: StudentTask): Long
     @Delete suspend fun deleteTask(task: StudentTask)
 
     @Query("SELECT * FROM student_notes ORDER BY updatedAtEpochMillis DESC") fun observeNotes(): Flow<List<StudentNote>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertNote(note: StudentNote): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupNote(note: StudentNote): Long
     @Delete suspend fun deleteNote(note: StudentNote)
 
     @Query("SELECT * FROM student_decks ORDER BY title COLLATE NOCASE") fun observeDecks(): Flow<List<StudentDeck>>
     @Query("SELECT * FROM student_cards ORDER BY dueAtEpochMillis") fun observeCards(): Flow<List<StudentCard>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertDeck(deck: StudentDeck): Long
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertCard(card: StudentCard): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupDeck(deck: StudentDeck): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupCard(card: StudentCard): Long
     @Insert suspend fun insertReview(review: StudentReview): Long
+    @Insert suspend fun insertBackupReview(review: StudentReview): Long
     @Query("SELECT * FROM student_reviews ORDER BY reviewedAtEpochMillis DESC") fun observeReviews(): Flow<List<StudentReview>>
 
     @Query("SELECT * FROM student_sessions ORDER BY startedAtEpochMillis DESC") fun observeSessions(): Flow<List<StudentStudySession>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertSession(session: StudentStudySession): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBackupSession(session: StudentStudySession): Long
     @Query("SELECT * FROM student_active_timer WHERE id=1") fun observeActiveTimer(): Flow<StudentActiveTimer?>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun saveActiveTimer(timer: StudentActiveTimer)
+    @Query("DELETE FROM student_courses") suspend fun clearCourses()
+    @Query("DELETE FROM student_tasks") suspend fun clearTasks()
+    @Query("DELETE FROM student_notes") suspend fun clearNotes()
+    @Query("DELETE FROM student_decks") suspend fun clearDecks()
+    @Query("DELETE FROM student_cards") suspend fun clearCards()
+    @Query("DELETE FROM student_reviews") suspend fun clearReviews()
+    @Query("DELETE FROM student_sessions") suspend fun clearSessions()
     @Query("DELETE FROM student_active_timer WHERE id=1") suspend fun clearActiveTimer()
 
     @Query("SELECT * FROM student_calendar_events ORDER BY CASE WHEN allDay=1 THEN startDate ELSE date(startAtEpochMillis/1000,'unixepoch','localtime') END") fun observeCalendarEvents(): Flow<List<StudentCalendarEvent>>

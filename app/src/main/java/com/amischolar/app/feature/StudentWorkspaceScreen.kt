@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
@@ -25,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,10 +58,12 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.json.JSONObject
 
 private val studentTabs = listOf("Overview", "Courses", "Tasks", "Notes", "Flashcards", "Focus", "Calendar")
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     val studentDao = database.studentWorkspaceDao()
     val projectDao = database.researchProjectDao()
@@ -73,6 +78,7 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     val sessions by studentDao.observeSessions().collectAsState(initial = emptyList())
     val timer by studentDao.observeActiveTimer().collectAsState(initial = null)
     val calendarEvents by studentDao.observeCalendarEvents().collectAsState(initial = emptyList())
+    val activeTimer = timer
     val projects by projectDao.observeAll().collectAsState(initial = emptyList())
     var selectedTab by remember { mutableStateOf("Overview") }
     var selectedCourse by remember { mutableStateOf<Long?>(null) }
@@ -92,6 +98,8 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     var focusMinutes by remember { mutableStateOf("25") }
     var message by remember { mutableStateOf("") }
     var revealed by remember { mutableStateOf(false) }
+    var pendingRestore by remember { mutableStateOf<JSONObject?>(null) }
+    var backupBytes by remember { mutableStateOf<ByteArray?>(null) }
     val now by produceState(System.currentTimeMillis(), timer) {
         while (true) { value = System.currentTimeMillis(); delay(1000) }
     }
@@ -109,6 +117,18 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     val exportIcs = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/calendar")) { uri ->
         if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(pendingIcs) } }
             .onSuccess { message = "Calendar exported." }.onFailure { message = "Calendar export failed: ${it.message}" }
+    }
+    val exportBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(backupBytes ?: error("No backup data")) } }
+            .onSuccess { message = "Student backup exported." }.onFailure { message = "Backup export failed: ${it.message}" }
+    }
+    val importBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            try {
+                val bytes = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Could not open the selected backup.") }
+                pendingRestore = StudentWorkspaceBackup.decode(bytes)
+            } catch (error: Exception) { message = "Backup validation failed: ${error.message ?: "invalid backup"}" }
+        }
     }
     val dueCards = cards.filter { it.dueAtEpochMillis <= now && (selectedDeck == null || it.deckId == selectedDeck) }
 
@@ -131,6 +151,12 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                             SummaryCard("Cards due", dueCards.size.toString())
                         }
                         Text("Focus time: ${sessions.sumOf { it.durationSeconds } / 60} minutes · ${studyStreak(sessions)} day streak")
+                        Text("Portable student backup", style = MaterialTheme.typography.titleMedium)
+                        Text("Move courses, tasks, notes, flashcards, study logs and calendar events between web and Android.")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { scope.launch { try { backupBytes = withContext(Dispatchers.IO) { StudentWorkspaceBackup.encode(studentDao.backupCourses(), studentDao.backupTasks(), studentDao.backupNotes(), studentDao.backupDecks(), studentDao.backupCards(), studentDao.backupReviews(), studentDao.backupSessions(), studentDao.backupActiveTimer(), studentDao.getCalendarEvents()) }; exportBackup.launch("am-i-scholar-student-backup.json") } catch (error: Exception) { message = "Backup export failed: ${error.message}" } } }) { Text("Export backup") }
+                            OutlinedButton(onClick = { importBackup.launch(arrayOf("application/json", "text/*")) }) { Text("Restore backup") }
+                        }
                         tasks.filter { it.status != "done" }.take(5).forEach { Text("• ${it.title} · ${it.dueDate.ifBlank { "No due date" }}") }
                     }
                     "Courses" -> {
@@ -182,15 +208,16 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                         SelectionPicker("Course", courses.map { it.id to it.name }, selectedCourse) { selectedCourse = it }
                         SelectionPicker("Research paper", projects.map { it.id to it.title }, selectedPaper) { selectedPaper = it }
                         SelectionPicker("Task", tasks.map { it.id to it.title }, selectedTask) { selectedTask = it }
-                        if (timer == null) {
+                        if (activeTimer == null) {
                             OutlinedTextField(focusMinutes, { focusMinutes = it.filter(Char::isDigit).take(3) }, label = { Text("Minutes (1–180)") }, modifier = Modifier.fillMaxWidth())
                             Button(enabled = (focusMinutes.toIntOrNull() ?: 0) in 1..180, onClick = { val start = System.currentTimeMillis(); val seconds = focusMinutes.toLong() * 60; scope.launch(Dispatchers.IO) { studentDao.saveActiveTimer(StudentActiveTimer(startedAtEpochMillis = start, endsAtEpochMillis = start + seconds * 1000, plannedSeconds = seconds, courseId = selectedCourse, paperId = selectedPaper, taskId = selectedTask)) } }) { Text("Start focus") }
                         } else {
-                            val remaining = ((timer.endsAtEpochMillis - (timer.pausedAtEpochMillis ?: now) + 999) / 1000).coerceAtLeast(0)
+                            val runningTimer = requireNotNull(activeTimer)
+                            val remaining = ((runningTimer.endsAtEpochMillis - (runningTimer.pausedAtEpochMillis ?: now) + 999) / 1000).coerceAtLeast(0)
                             Text("%02d:%02d".format(remaining / 60, remaining % 60), style = MaterialTheme.typography.headlineLarge)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = { val active = timer; val current = System.currentTimeMillis(); val updated = if (active.pausedAtEpochMillis == null) active.copy(pausedAtEpochMillis = current) else active.copy(endsAtEpochMillis = active.endsAtEpochMillis + current - active.pausedAtEpochMillis, pausedMillis = active.pausedMillis + current - active.pausedAtEpochMillis, pausedAtEpochMillis = null); scope.launch(Dispatchers.IO) { studentDao.saveActiveTimer(updated) } }) { Text(if (timer.pausedAtEpochMillis == null) "Pause" else "Resume") }
-                                OutlinedButton(onClick = { val active = timer; val end = System.currentTimeMillis(); val elapsed = (((active.pausedAtEpochMillis ?: end) - active.startedAtEpochMillis - active.pausedMillis) / 1000).coerceAtLeast(0); scope.launch(Dispatchers.IO) { studentDao.insertSession(StudentStudySession(startedAtEpochMillis = active.startedAtEpochMillis, endedAtEpochMillis = end, durationSeconds = elapsed, courseId = active.courseId, paperId = active.paperId, taskId = active.taskId)); studentDao.clearActiveTimer() } }) { Text("Finish & log") }
+                                Button(onClick = { val current = System.currentTimeMillis(); val updated = if (runningTimer.pausedAtEpochMillis == null) runningTimer.copy(pausedAtEpochMillis = current) else runningTimer.copy(endsAtEpochMillis = runningTimer.endsAtEpochMillis + current - runningTimer.pausedAtEpochMillis, pausedMillis = runningTimer.pausedMillis + current - runningTimer.pausedAtEpochMillis, pausedAtEpochMillis = null); scope.launch(Dispatchers.IO) { studentDao.saveActiveTimer(updated) } }) { Text(if (runningTimer.pausedAtEpochMillis == null) "Pause" else "Resume") }
+                                OutlinedButton(onClick = { val end = System.currentTimeMillis(); val elapsed = (((runningTimer.pausedAtEpochMillis ?: end) - runningTimer.startedAtEpochMillis - runningTimer.pausedMillis) / 1000).coerceAtLeast(0); scope.launch(Dispatchers.IO) { studentDao.insertSession(StudentStudySession(startedAtEpochMillis = runningTimer.startedAtEpochMillis, endedAtEpochMillis = end, durationSeconds = elapsed, courseId = runningTimer.courseId, paperId = runningTimer.paperId, taskId = runningTimer.taskId)); studentDao.clearActiveTimer() } }) { Text("Finish & log") }
                             }
                         }
                         Text("${sessions.sumOf { it.durationSeconds } / 60} minutes logged · ${studyStreak(sessions)} day local streak")
@@ -218,6 +245,15 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                 Spacer(Modifier.height(24.dp))
             }
         }
+    }
+    pendingRestore?.let { data ->
+        AlertDialog(
+            onDismissRequest = { pendingRestore = null },
+            title = { Text("Replace student workspace?") },
+            text = { Text("This validated backup will replace courses, tasks, notes, flashcards, study history and calendar events on this device. Research projects are unchanged.") },
+            confirmButton = { TextButton(onClick = { pendingRestore = null; scope.launch { try { withContext(Dispatchers.IO) { StudentWorkspaceBackup.restore(database, data) }; message = "Student backup restored." } catch (error: Exception) { message = "Backup restore failed: ${error.message}" } } }) { Text("Replace student data") } },
+            dismissButton = { TextButton(onClick = { pendingRestore = null }) { Text("Cancel") } }
+        )
     }
 }
 
