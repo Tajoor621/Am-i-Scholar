@@ -127,6 +127,32 @@ test("student focus sessions appear in the unified calendar with dated tasks",as
  await expect(page.locator("#academicBody")).toContainText("focus");
 });
 
+test("OpenAlex search imports its returned metadata as an unverified source",async({page})=>{
+ await page.route("https://api.openalex.org/works?*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({results:[{display_name:"OpenAlex characterization",authorships:[{author:{display_name:"A. Scholar"}}],publication_year:2023,doi:"https://doi.org/10.1000/openalex",primary_location:{source:{display_name:"Example Venue"}}}]})}));
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"OpenAlex source test");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("research metadata");
+ await page.locator("#literatureProvider").selectOption("openalex");
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults")).toContainText("OpenAlex characterization");
+ await expect(page.locator("#literatureResults")).toContainText("A. Scholar");
+ await page.getByRole("button",{name:"Import metadata"}).click();
+ await expect(page.locator("#recordList")).toContainText("Verified against original: No");
+});
+
+test("offline literature search reports an error and leaves manual source entry available",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Offline search test");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("offline research query");
+ await page.evaluate(()=>{Object.defineProperty(navigator,"onLine",{configurable:true,value:false})});
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults")).toContainText("Offline: manual source entry remains available.");
+ await expect(page.locator("#recordTitle")).toBeVisible();
+ await expect(page.locator("#recordContent")).toBeVisible();
+});
+
 test("web, Android, student, evidence, and CSL export entry points remain available",async({page})=>{
  await page.goto("http://127.0.0.1:8000/");
  await createPaper(page,"Export owner");
