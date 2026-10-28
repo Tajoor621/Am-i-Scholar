@@ -100,6 +100,31 @@ test("source library opens saved source records; legacy web and Android backups 
  await page.locator("#restoreFile").setInputFiles({name:"android.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(android))});
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Android import");
+ await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
+ const webV2={format:"am-i-scholar-web",version:2,projects:[{id:"v2-project",title:"Version two",question:"Stored question?",discipline:"Biology",citationStyle:"APA"}],records:[{id:"v2-record",projectId:"v2-project",moduleId:"draft-studio",title:"Restored draft",content:"Preserved text",updated:1}],evidenceLinks:[]};
+ await page.locator("#restoreFile").setInputFiles({name:"current-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(webV2))});
+ await page.locator("aside").getByRole("button",{name:/My papers/}).click();
+ await expect(page.locator("#projectList")).toContainText("Version two");
+});
+
+test("student focus sessions appear in the unified calendar with dated tasks",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Focus"}).click();
+ await page.locator('#academicBody input[type="number"]').fill("1");
+ await page.getByRole("button",{name:"Start",exact:true}).click();
+ await page.getByRole("button",{name:"Pause / resume"}).click();
+ await page.getByRole("button",{name:"Pause / resume"}).click();
+ await page.getByRole("button",{name:"Finish & log"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Logged focus time");
+ await page.locator("#academicNav").getByRole("button",{name:"Tasks"}).click();
+ await page.getByRole("button",{name:"+ New task"}).click();
+ await page.locator('#academicBody input[name="title"]').fill("Calendar characterization");
+ await page.locator('#academicBody input[name="dueDate"]').fill(new Date().toISOString().slice(0,10));
+ await page.getByRole("button",{name:"Save",exact:true}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Calendar"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Calendar characterization");
+ await expect(page.locator("#academicBody")).toContainText("focus");
 });
 
 test("web, Android, student, evidence, and CSL export entry points remain available",async({page})=>{
