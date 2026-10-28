@@ -163,7 +163,7 @@ test("federated literature search deduplicates 20 sources and saves Open Access 
  await page.route("https://api.openalex.org/works?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({results:openalex})})});
  await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({esearchresult:{idlist:pmids}})})});
  await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/xml",body:`<?xml version="1.0"?><PubmedArticleSet>${articles}</PubmedArticleSet>`})});
- await page.route("https://api.unpaywall.org/v2/*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({is_oa:true,oa_status:"gold",best_oa_location:{url_for_pdf:"https://oa.example/fulltext.pdf"}})})});
+ await page.route("https://api.unpaywall.org/v2/**",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({is_oa:true,oa_status:"gold",best_oa_location:{url_for_pdf:"https://oa.example/fulltext.pdf"}})})});
  await page.goto("http://127.0.0.1:8000/");
  await createPaper(page,"Federated search");
  await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
