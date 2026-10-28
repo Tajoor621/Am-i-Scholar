@@ -62,7 +62,7 @@ test("each research module opens its distinct baseline workflow and structured t
   ["Outline Architect","Outline coverage","Research gap:"],
   ["Draft Studio","Draft word count","Abstract:"],
   ["Style Coach","Offline writing signals","Original paragraph:"],
-  ["Citation Center","Reference metadata audit","DOI or official URL:"],
+  ["Citation Center","Offline CSL bibliography","DOI or official URL:"],
   ["Originality & Integrity","Human review required","Direct quotations and page numbers:"],
   ["Review Simulator","Simulated reviewer checklist","Comment / potential concern:"],
   ["Submission Kit","Journal due diligence","Official HTTPS author-guidelines URL:"],
