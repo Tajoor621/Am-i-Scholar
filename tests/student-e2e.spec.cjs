@@ -59,6 +59,7 @@ test("student calendar imports timezone-aware ICS events and exports them offlin
  await expect(page.locator("#academicBody")).toContainText("10:30 AM");
  await expect(page.locator("#academicBody")).toContainText("All-day study fair");
  await page.locator("#calendarIcsFile").setInputFiles({name:"student-timezones.ics",mimeType:"text/calendar",buffer:await fs.readFile("tests/fixtures/student-calendar-timezones.ics")});
+ await expect(page.locator("#calendarIcsStatus")).toContainText("4 calendar event(s) imported.");
  await page.locator('#academicBody input[type="month"]').fill("2026-03");await page.locator("#academicBody h2").click();
  await expect(page.locator("#academicBody .record").filter({hasText:"Spring-forward seminar"})).toHaveCount(1);
  const [download]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export ICS"}).click()]);
