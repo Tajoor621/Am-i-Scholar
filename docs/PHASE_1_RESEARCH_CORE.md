@@ -2,9 +2,9 @@
 
 ## Current baseline
 
-This phase upgrades the research tools additively. The web Literature Radar now searches Crossref, OpenAlex, and PubMed concurrently by default, with provider selection, a 20-result cap per provider, DOI-first deduplication, optional contact email, Unpaywall Open Access enrichment, and local source status/notes. Imported metadata remains unverified. Citation Center now supports offline CSL formatting plus CSL-JSON, BibTeX, and RIS import/export; missing-field warnings are separate from formatted output. A local PDF reader remains a later increment.
+This phase upgrades the research tools additively. The web Literature Radar now searches Crossref, OpenAlex, and PubMed concurrently by default, with provider selection, a 20-result cap per provider, DOI-first deduplication, optional contact email, Unpaywall Open Access enrichment, and local source status/notes. Imported metadata remains unverified. Citation Center supports offline CSL formatting plus CSL-JSON, BibTeX, and RIS import/export; missing-field warnings are separate from formatted output. It also opens local PDFs with pinned PDF.js 6.4.299 and stores selected text highlights and notes in the paper's local records.
 
-Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositories plus Room-backed source records and backup/export flows. The federated search UI in this increment is web-only; Android parity and its provider-specific rate/error behavior remain tracked work, not an implied delivery.
+Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositories plus Room-backed source records and backup/export flows. Federated search, BibTeX/RIS web controls, and the PDF reader are web-only in this increment; Android parity and provider-specific rate/error behavior remain tracked work, not an implied delivery.
 
 ## Increment 1: federated literature discovery
 
@@ -26,8 +26,8 @@ Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositorie
 ## Later increments
 
 - Verify live-provider browser CORS and rate behavior beyond the mocked browser acceptance cases; document provider-specific limitations.
-- Verify BibTeX/RIS round trips against a broader fixture set, including less common entry and tag variants.
-- Vendor and pin pdf.js; add local PDF viewing, highlights, and notes.
+- Broaden BibTeX/RIS fixtures for less common entry and tag variants.
+- Verify PDF.js offline behavior for CMaps and uncommon embedded font cases across browsers.
 - Keep Android search, backup, and export behavior covered; add Android scope notes for web-only features.
 
 ## Data and behavior constraints
@@ -43,3 +43,9 @@ Android already contains Crossref, OpenAlex, PubMed, arXiv, and DOAJ repositorie
 - Preserve known authors, title, venue, year, volume/issue, pages, DOI, URL, publisher, and abstract. Do not fill absent facts.
 - Display advisory warnings for missing core citation fields in a separate panel; the same records must produce unchanged CSL output.
 - Acceptance: mocked BibTeX and RIS round trips preserve common fields, citations with missing fields display warnings, and CSL output stays free of warning text.
+
+## Increment 3: local PDF reading
+
+- Vendor the pinned PDF.js 6.4.299 generic build and Apache 2.0 license with its supporting assets; keep the viewer local and offline-capable.
+- Open PDF files from the device without uploading or storing the PDF bytes. Save selected passages and optional notes as project-local records; reselect the file after reload to restore their highlights.
+- Acceptance: a local sample PDF renders; text selection saves a page-linked highlight and note; the saved highlight reappears after reload and file reselection.

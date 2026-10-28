@@ -18,7 +18,7 @@ This inventory records observable entry points, persistence touched, and existin
 | Outline Architect | Open Outline Architect | Reads/writes project records in `amischolar.web.v2` | Contextual-help and characterization tests check its guidance/template. Saved-outline analysis: UNVERIFIED. |
 | Draft Studio | Open Draft Studio | Reads/writes project records; exports draft text, Markdown, HTML, and print dialog content | Tests cover Markdown, TXT, HTML download, and print-window content. Actual PDF printing depends on the browser print dialog: UNVERIFIED. |
 | Style Coach | Open Style Coach | Reads draft records; writes revision records in `amischolar.web.v2` | Contextual-help and characterization tests check its guidance/template. Signal output with varied drafts: UNVERIFIED. |
-| Citation Center | Open Citation Center | Reads/writes citation/source records; uses bundled citeproc and CSL assets; imports/exports CSL-JSON, BibTeX, and RIS; shows separate missing-field warnings | Tests cover metadata export, CSL-JSON and BibTeX/RIS import/export, all 7 bundled CSL style identifiers, bibliography formatting for all 7, bibliography Markdown download, and warnings isolated from formatted output. |
+| Citation Center | Open Citation Center | Reads/writes citation/source records; uses bundled citeproc/CSL, pinned PDF.js 6.4.299, and local PDF highlight/note records; imports/exports CSL-JSON, BibTeX, and RIS; shows separate missing-field warnings | Tests cover metadata export, CSL-JSON and BibTeX/RIS import/export, all 7 bundled CSL style identifiers, bibliography formatting for all 7, bibliography Markdown download, warning isolation, and local PDF highlight/notes persistence. |
 | Originality & Integrity | Open Originality & Integrity | Reads/writes project records; reports checklist-style guidance, not external plagiarism results | Contextual-help and characterization tests check guidance/template. Saved-record behavior: UNVERIFIED. |
 | Review Simulator | Open Review Simulator | Reads/writes researcher records; simulated checklist only | Contextual-help and characterization tests check checklist/template. Saved-record behavior: UNVERIFIED. |
 | Submission Kit | Open Submission Kit | Reads/writes project records | Contextual-help and characterization tests check due-diligence guidance/template. Saved-record checks: UNVERIFIED. |
@@ -82,7 +82,7 @@ Student mode is a separate offline workspace in `student.js`. It uses IndexedDB 
 
 ## Baseline evidence and open gaps
 
-- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 11 in `characterization.spec.cjs` (25 total), plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
+- The repository contains 12 cases in `web-e2e.spec.cjs`, 2 in `student-e2e.spec.cjs`, and 12 in `characterization.spec.cjs` (26 total), plus one Node static/syntax smoke test. `.github/workflows/web-e2e.yml` and `playwright.config.cjs` include all three Playwright files.
 - Existing Android tests: 16 Kotlin unit-test files, 4 instrumented-test files, and CI workflows for Android build/unit tests and emulator tests.
 - Current characterization remains incomplete for cases marked UNVERIFIED above. Close gaps before refactoring the corresponding feature.
 - The checked-in `docs/` static-site copy mirrors the web app; any web changes must preserve or deliberately regenerate that copy.

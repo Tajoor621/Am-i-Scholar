@@ -48,7 +48,7 @@ const CitationWorkspace = (() => {
   return result[1];
  }
  function metadataWarnings(items){return items.map(item=>{const missing=[];if(!Array.isArray(item.author)||!item.author.length)missing.push("author");const year=item.issued?.["date-parts"]?.[0]?.[0];if(!year)missing.push("year");if(!item.title)missing.push("title");if(item.type==="article-journal"&&!item["container-title"])missing.push("journal");if(["book","chapter"].includes(item.type)&&!item.publisher)missing.push("publisher");return {title:item.title||"Untitled source",missing}}).filter(x=>x.missing.length)}
- function render(root,records,parse,download){
+ function render(root,records,parse,download,pdfConfig){
   root.replaceChildren();
   const box=document.createElement("div");box.className="feature";
   const heading=document.createElement("h3");heading.textContent="Offline CSL bibliography";
@@ -72,7 +72,7 @@ const CitationWorkspace = (() => {
   };
   exportBtn.onclick=()=>{if(!output.length)return;const txt="# Bibliography\n\n> Draft citations: verify against original sources and journal requirements.\n\n"+output.map(x=>safeRich(x).textContent.trim()).join("\n\n");download("am-i-scholar-csl-bibliography.md",txt,"text/markdown")};
   const toolbar=document.createElement("div");toolbar.className="toolbar";toolbar.append(btn,exportBtn);
-  box.append(heading,notice,warnings,label,toolbar,result);root.append(box);
+  box.append(heading,notice,warnings,label,toolbar,result);root.append(box);if(typeof PDFReader!=="undefined"&&pdfConfig)PDFReader.render(root,pdfConfig);
   if(!items.length)result.textContent="Add a source in Citation Center or Literature Radar to format a bibliography.";
  }
  return {styles,cslItem,bibliography,metadataWarnings,render};

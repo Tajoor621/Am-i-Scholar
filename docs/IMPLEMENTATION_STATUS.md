@@ -32,7 +32,7 @@ The app is an offline-first Android research workspace. The public GitHub Pages 
 ## October 2026 incremental hardening (web)
 
 - Literature Radar (web): explicit federated Crossref/OpenAlex/PubMed queries, transient failure retries, independent provider errors, DOI/title-based deduplication, optional local contact email, Unpaywall DOI Open Access enrichment, UTC fetched-at provenance, and explicit unverified status. Live browser CORS/provider behavior remains unverified.
-- Citation Center (web): offline CSL formatting with seven bundled styles, CSL-JSON/BibTeX/RIS import-export, and separate advisory missing-field warnings; formats preserve imported local metadata without inventing absent fields.
+- Citation Center (web): offline CSL formatting with seven bundled styles, CSL-JSON/BibTeX/RIS import-export, separate advisory missing-field warnings, and a local PDF.js 6.4.299 reader with project-local highlights and notes; formats preserve imported metadata without inventing absent fields.
 - Evidence Matrix: structured claim/support-status fields and CSV/Markdown export with verification notice; existing records remain readable.
 - Citation Center: clear draft-citation disclaimer; **not yet CSL compliant**. Existing Android citation templates remain unchanged pending an independently tested open-source CSL engine.
 - Student workspace remains a separate IndexedDB store; web research records remain in localStorage. No migration or Android Room schema change in this increment.

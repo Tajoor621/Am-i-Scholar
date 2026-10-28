@@ -1,0 +1,9 @@
+.pdfPageSurface{position:relative;max-width:100%;margin:12px auto;overflow:auto;background:#e8edf4;border:1px solid #d1dbea;border-radius:8px;}
+.pdfPageSurface canvas{display:block;margin:0 auto;background:#fff;}
+.pdfPageSurface .pdfTextLayer{position:absolute;inset:0;overflow:hidden;line-height:1;letter-spacing:normal;word-spacing:normal;transform-origin:0 0;user-select:text;z-index:1;}
+.pdfTextLayer span,.pdfTextLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0;user-select:text;}
+.pdfTextLayer>:not(.markedContent),.pdfTextLayer .markedContent span:not(.markedContent){z-index:1;--font-height:0;font-size:calc(var(--text-scale-factor)*var(--font-height));--scale-x:1;--rotate:0deg;transform:rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));}
+.pdfTextLayer .markedContent{display:contents;}
+.pdfTextLayer .pdf-saved-highlight{background:rgba(255,213,70,.62);border-radius:2px;}
+.pdfTextLayer ::selection{background:rgba(60,120,255,.36);color:transparent;}
+.pdfReader .toolbar{margin:12px 0}.pdfReader #pdfSavedHighlights{margin-top:14px}.pdfReader #pdfSavedHighlights article p{margin:8px 0;white-space:pre-wrap;}

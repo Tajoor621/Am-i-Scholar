@@ -257,3 +257,22 @@ test("citation metadata warnings stay separate from unchanged formatted output",
  await expect(page.locator("#cslResult")).toContainText("Minimal Evidence");
  await expect(page.locator("#cslResult")).not.toContainText("Missing author");
 });
+
+test("local PDF reader saves a page highlight and note with the paper",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"PDF reader annotations");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ const file={name:"reading-sample.pdf",mimeType:"application/pdf",buffer:await fs.readFile("tests/fixtures/pdf-reader-sample.pdf"),lastModified:123456};
+ await page.locator("#pdfFile").setInputFiles(file);
+ await expect(page.locator("#pdfTextLayer")).toContainText("Highlight this sentence.",{timeout:15000});
+ const selected=await page.locator("#pdfTextLayer").evaluate((root,needle)=>{const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];let all="",node;while((node=walker.nextNode())){nodes.push({node,start:all.length,end:all.length+node.textContent.length});all+=node.textContent}const begin=all.indexOf(needle);if(begin<0)return false;const finish=begin+needle.length,a=nodes.find(x=>begin>=x.start&&begin<x.end),b=nodes.find(x=>finish>x.start&&finish<=x.end);if(!a||!b)return false;const range=document.createRange();range.setStart(a.node,begin-a.start);range.setEnd(b.node,finish-b.start);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);return true},"Highlight this sentence.");
+ expect(selected).toBeTruthy();await page.locator("#pdfHighlightNote").fill("Check the reported mechanism.");
+ await expect(page.getByRole("button",{name:"Save selected text as highlight"})).toBeEnabled();
+ await page.getByRole("button",{name:"Save selected text as highlight"}).click();
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Highlight this sentence.");
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Check the reported mechanism.");
+ await expect(page.locator("#pdfTextLayer .pdf-saved-highlight")).toBeVisible();
+ await page.reload();await page.locator("aside").getByRole("button",{name:/My papers/}).click();await page.getByRole("button",{name:"Open paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();await page.locator("#pdfFile").setInputFiles(file);
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Check the reported mechanism.");
+ await expect(page.locator("#pdfTextLayer .pdf-saved-highlight")).toBeVisible();
+});
