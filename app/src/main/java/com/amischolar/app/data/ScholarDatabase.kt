@@ -14,7 +14,7 @@ abstract class ScholarDatabase : RoomDatabase() {
     abstract fun studentWorkspaceDao(): StudentWorkspaceDao
 
     companion object {
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
+        internal val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS research_notes (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, projectId INTEGER NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, kind TEXT NOT NULL, updatedAtEpochMillis INTEGER NOT NULL, FOREIGN KEY(projectId) REFERENCES research_projects(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_research_notes_projectId ON research_notes (projectId)")
