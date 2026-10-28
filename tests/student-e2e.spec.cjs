@@ -143,4 +143,5 @@ test("student workspace restores the shared web and Android backup shape",async(
  expect(restored.review[0].cardId).toBe("card-web-1");
  expect(restored.session[0].taskId).toBe("task-web-1");
  expect(restored.event[0]).toMatchObject({uid:"event-web-1",kind:"ics-event"});
+ expect(typeof restored.event[0].startAt).toBe("number");
 });
