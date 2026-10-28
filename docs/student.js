@@ -46,7 +46,7 @@ function timerUI({courses=[],tasks=[],papers=[]}={}){
  body.replaceChildren(...title("Pomodoro focus","Focus timing and study logs stay on this device, including across browser restarts."));
  const panel=box(),form=document.createElement("div"),input=document.createElement("input"),minuteLabel=el("label","Focus minutes");
  input.type="number";input.min=1;input.max=180;input.value=state.timer?Math.max(1,Math.round((state.timer.plannedSeconds||1500)/60)):25;input.style.maxWidth="100px";minuteLabel.htmlFor="focusMinutes";input.id="focusMinutes";form.append(minuteLabel,input);
- const options=(rows,label)=>[["",label],...rows],course=select(form,"focusCourse","Link course",options(courses,"No course")),paper=select(form,"focusPaper","Link research paper",options(papers,"No paper")),task=select(form,"focusTask","Link task",options(tasks.map(item=>({...item,name:item.title})),"No task"));
+ const options=(rows,label,key="name")=>[["",label],...rows.map(item=>[item.id,item[key]])],course=select(form,"focusCourse","Link course",options(courses,"No course")),paper=select(form,"focusPaper","Link research paper",options(papers,"No paper")),task=select(form,"focusTask","Link task",options(tasks,"No task","title"));
  const restore=state.timer||{};course.value=restore.courseId||"";paper.value=restore.paperId||"";task.value=restore.taskId||"";panel.append(form);
  const clock=el("h2","25:00");clock.id="focusClock";clock.style.fontSize="40px";panel.append(clock);
  const status=el("p","","notice");status.id="focusTimerStatus";status.setAttribute("role","status");panel.append(status);
