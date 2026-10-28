@@ -53,7 +53,7 @@ END:VEVENT
 END:VCALENDAR"""
         val parsed = CalendarIcs.parse(source)
         assertEquals(3, parsed.events.size)
-        assertEquals("Folded conference session continues here", parsed.events.first().title)
+        assertEquals("Folded conference session continues here", parsed.events.first { it.uid == "fold" }.title)
         assertTrue(parsed.events.any { it.allDay && it.startDate == "2026-03-09" && it.endDateExclusive == "2026-03-10" })
         assertTrue(parsed.events.any { it.uid == "utc" && it.startAtEpochMillis == Instant.parse("2026-10-28T12:00:00Z").toEpochMilli() })
         assertEquals(3, CalendarIcs.parse(CalendarIcs.serialize(parsed.events)).events.size)
