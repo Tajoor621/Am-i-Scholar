@@ -57,7 +57,7 @@ test("each research module opens its distinct baseline workflow and structured t
  await createPaper(page,"Module inventory");
  const cases=[
   ["Topic Lab","Question quality checks","Population or system"],
-  ["Literature Radar","Live scholarly literature search","Authors:"],
+  ["Literature Radar","Search live scholarly metadata","Authors:"],
   ["Evidence Matrix","Evidence traceability","Support status:"],
   ["Outline Architect","Outline coverage","Research gap:"],
   ["Draft Studio","Draft word count","Abstract:"],
