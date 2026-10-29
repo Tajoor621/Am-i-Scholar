@@ -209,9 +209,16 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
                         OutlinedButton(onClick = {
                             val file = File(context.filesDir, lecture.fileName)
                             runCatching {
-                                val player = MediaPlayer.create(context, file) ?: error("Audio could not be opened")
-                                player.setOnCompletionListener { completed: MediaPlayer -> completed.release() }
-                                player.start()
+                                val player = MediaPlayer()
+                                try {
+                                    player.setDataSource(file.absolutePath)
+                                    player.prepare()
+                                    player.setOnCompletionListener { completed: MediaPlayer -> completed.release() }
+                                    player.start()
+                                } catch (error: Exception) {
+                                    player.release()
+                                    throw error
+                                }
                             }.onFailure { error -> message = "Playback failed: ${error.message}" }
                         }) { Text("Play") }
                         OutlinedButton(onClick = { pendingExport = File(context.filesDir, lecture.fileName); exportAudio.launch(safeName(lecture.title) + ".m4a") }) { Text("Export audio") }
