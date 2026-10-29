@@ -50,6 +50,7 @@ fun GroundedAiHandoffPanel(
     var consent by remember(projectId) { mutableStateOf(false) }
     var copiedPrompt by remember(projectId) { mutableStateOf("") }
     var reviewed by remember(projectId) { mutableStateOf(false) }
+    var disclosureText by remember(projectId) { mutableStateOf("")}
     var message by remember(projectId) { mutableStateOf("") }
     val selectedSources = sources.filter { it.id in selectedIds }.take(GroundedAiHandoff.MAX_SOURCES).map { source ->
         val linkedEvidence = links.filter { it.sourceId == source.id }.mapNotNull { link ->
@@ -65,6 +66,7 @@ fun GroundedAiHandoffPanel(
             evidence = listOf(source.evidenceNotes, linkedEvidence.joinToString("\n")).filter { it.isNotBlank() }.joinToString("\n")
         )
     }
+    val generatedDisclosure = GroundedAiHandoff.disclosure(provider, task, selectedSources.map { it.id }, reviewed)
     val built = remember(task, selectedIds, sources, notes, links) {
         GroundedAiHandoff.buildPrompt(task, selectedSources)
     }
@@ -149,7 +151,7 @@ fun GroundedAiHandoffPanel(
                 Button(
                     enabled = response.isNotBlank(),
                     onClick = {
-                        val disclosure = GroundedAiHandoff.disclosure(provider, task, built.sourceIds, reviewed)
+                        val disclosure = disclosureText.ifBlank { generatedDisclosure }
                         val log = ResearchNote(
                             projectId = projectId,
                             title = "AI use log · ${System.currentTimeMillis()}",
@@ -177,6 +179,13 @@ fun GroundedAiHandoffPanel(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Save AI-use log locally") }
+                OutlinedTextField(
+                    value = disclosureText.ifBlank { generatedDisclosure },
+                    onValueChange = { disclosureText = it },
+                    label = { Text("Editable AI-use disclosure statement") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
                 Button(
                     onClick = {
                         val disclosure = GroundedAiHandoff.disclosure(provider, task, built.sourceIds, reviewed)
