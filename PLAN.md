@@ -42,4 +42,4 @@ The original CI results did not establish a complete browser baseline because th
 
 Do not begin a feature phase until Phase 0 has a green regression baseline and all tests needed to characterize the touched behaviors pass in CI. For every phase, preserve existing feature entry points and data, document behavior changes in `CHANGELOG.md`, update the feature inventory and README only with verified capabilities, and record deferred items with reasons.
 
-Phase 1 implementation is complete on its review-ready branch; browser and PWA CI passed at the current Phase 1 head. Phase 2 begins from that head on a separate dependent branch. No user-device testing begins before the app and release APK/testing URL are ready.
+Phase 1 and Phase 2 implementations are complete on separate review-ready branches. Phase 3 manual AI handoff follows Phase 2 on its own dependent branch after the source-grounded boundary and evaluation set were committed. Web E2E/PWA, Android CI, and emulator checks pass on Phase 3's current head. Cloud-provider APIs and local model runtimes remain deferred; no user-device testing begins before the app and formal APK/testing URL are ready.
