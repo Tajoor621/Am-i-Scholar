@@ -322,3 +322,43 @@ test("Android-compatible encrypted fixture decrypts in the browser implementatio
  const fixture={format:"am-i-scholar-encrypted",version:1,kdf:"PBKDF2-HMAC-SHA-256",iterations:310000,cipher:"AES-256-GCM",salt:"AAECAwQFBgcICQoLDA0ODw==",iv:"AAECAwQFBgcICQoL",ciphertext:"cEXk3EJgR4JHR8OS/rppuK1Y5/b0NoNTsOmcinZMGDV4wFpa+go1paDP43s="};
  expect(await BackupCrypto.decrypt(JSON.stringify(fixture),"correct horse battery staple")).toEqual({fixture:"web-to-android"});
 });
+
+test("encrypted full backup exports and restores research plus student records",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Encrypted full paper");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Courses"}).click();
+ await page.getByRole("button",{name:"+ Add course"}).click();
+ await page.locator('#academicBody input[name="name"]').fill("Encrypted course");
+ await page.locator('#academicBody form button[type="submit"]').click();
+ await page.getByRole("button",{name:"Researcher Mode"}).click();
+ await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
+ const downloadPromise=page.waitForEvent("download");
+ await page.getByRole("button",{name:"Export encrypted full backup"}).click();
+ const fields=page.locator('dialog input[type="password"]');
+ await fields.nth(0).fill("sample passphrase for backup");
+ await fields.nth(1).fill("sample passphrase for backup");
+ await page.locator("dialog").getByRole("button",{name:"Encrypt"}).click();
+ const download=await downloadPromise;
+ const exported=await fs.readFile(await download.path(),"utf8");
+ const envelope=JSON.parse(exported);
+ expect(envelope.format).toBe("am-i-scholar-encrypted");
+ expect(exported).not.toContain("Encrypted full paper");
+ await page.evaluate(async()=>{
+  localStorage.removeItem("amischolar.web.v2");
+  await new Promise(resolve=>{const request=indexedDB.deleteDatabase("amischolar-academic-v1");request.onsuccess=request.onerror=request.onblocked=resolve});
+ });
+ await page.reload();
+ await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
+ page.on("dialog",dialog=>dialog.accept());
+ await page.locator("#restoreFile").setInputFiles({name:"encrypted-full.json",mimeType:"application/json",buffer:Buffer.from(exported)});
+ const decryptFields=page.locator('dialog input[type="password"]');
+ await decryptFields.fill("sample passphrase for backup");
+ await page.locator("dialog").getByRole("button",{name:"Decrypt"}).click();
+ await expect(page.locator("#status")).toHaveText("Research and student backup restored on this browser.");
+ await page.locator("aside").getByRole("button",{name:/My papers/}).click();
+ await expect(page.locator("#projectList")).toContainText("Encrypted full paper");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Courses"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Encrypted course");
+});
