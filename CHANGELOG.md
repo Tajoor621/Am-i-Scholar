@@ -1,9 +1,10 @@
-# Phase 5: Encrypted Research Backup
+# Phase 5: Encrypted Full Workspace Backup
 
-- Add an explicit encrypted research backup export using PBKDF2-HMAC-SHA-256 and AES-256-GCM. Passwords are requested only for the current operation and are never stored.
-- Add authenticated decryption, parameter/version checks, a 10 MB limit, pre-restore record validation, and a replacement-count confirmation. Existing plaintext web and Android JSON backups remain supported.
-- Encrypted export currently contains the web research backup format. Student workspace records and Android-native encrypted import/export are not included in this implementation slice; cloud sync, autosave, and lecture audio remain excluded.
-- Add characterization coverage for round-trip decryption, wrong passphrases, and modified envelope metadata.
+- Add user-triggered encrypted export/import across web and Android using PBKDF2-HMAC-SHA-256 and AES-256-GCM, with passwords requested only for the current operation.
+- Include web research, portable Android project snapshots, and shared student workspace records. Preserve all existing plaintext backup formats.
+- Authenticate encryption metadata, enforce supported parameters and a 10 MB limit, validate complete payloads before restore, and show a restore preview.
+- Keep cloud sync, accounts, automatic saves, analytics, and lecture audio excluded.
+- Add browser and Android tests for authenticated encryption, cross-platform decryption, full payload validation, wrong passphrases, and metadata tampering.
 
 # Changelog
 
