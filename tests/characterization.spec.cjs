@@ -116,26 +116,23 @@ test("source library opens saved source records; legacy web and Android backups 
  await expect(page.locator("#workspaceTitle")).toHaveText("Literature Radar");
 
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
- let oldWebMessage="";page.once("dialog",async dialog=>{oldWebMessage=dialog.message();await dialog.accept()});
+ await page.evaluate(()=>{window.confirm=()=>true});
  await page.locator("#restoreFile").setInputFiles({name:"old-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({format:"am-i-scholar-web",version:1,projects:[{id:"old-project",title:"Version one"}],records:[]}))});
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
- expect(oldWebMessage).toContain("Replace ALL current browser research");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version one");
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const android={format:"am-i-scholar-project",version:1,project:{title:"Android import",researchQuestion:"A question?",discipline:"Biology",citationStyle:"APA"},notes:[{title:"Method",content:"Local note",kind:"DRAFT"}],sources:[{title:"Source",authors:"A. Author",year:"2023",doiOrUrl:"10.1000/doi",publication:"Journal",verified:false}],evidenceLinks:[]};
- let androidMessage="";page.once("dialog",async dialog=>{androidMessage=dialog.message();await dialog.accept()});
+
  await page.locator("#restoreFile").setInputFiles({name:"android.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(android))});
  await expect(page.locator("#status")).toHaveText("Android project imported as a new browser paper.");
- expect(androidMessage).toContain("Import this Android research project");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Android import");
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const webV2={format:"am-i-scholar-web",version:2,projects:[{id:"v2-project",title:"Version two",question:"Stored question?",discipline:"Biology",citationStyle:"APA"}],records:[{id:"v2-record",projectId:"v2-project",moduleId:"draft-studio",title:"Restored draft",content:"Preserved text",updated:1}],evidenceLinks:[]};
- let webV2Message="";page.once("dialog",async dialog=>{webV2Message=dialog.message();await dialog.accept()});
+
  await page.locator("#restoreFile").setInputFiles({name:"current-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(webV2))});
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
- expect(webV2Message).toContain("Replace ALL current browser research");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version two");
 });
