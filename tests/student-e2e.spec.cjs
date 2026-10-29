@@ -193,7 +193,7 @@ test("source-grounded AI handoff requires one-time consent and saves a separate 
 
 test("lecture capture is local, editable, persistent and deletable",async({page})=>{
  const external=[];
- page.on("request",request=>{if(!request.url().startsWith("http://127.0.0.1:8000"))external.push(request.url())});
+ page.on("request",request=>{if(/^https?:/.test(request.url())&&!request.url().startsWith("http://127.0.0.1:8000"))external.push(request.url())});
  await page.addInitScript(()=>{
   const track={stop(){}};
   Object.defineProperty(navigator,"mediaDevices",{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[track]})}});
