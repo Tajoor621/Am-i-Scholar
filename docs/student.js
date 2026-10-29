@@ -19,7 +19,7 @@ const button=(label,fn,cls="secondary")=>{const b=el("button",label,cls);b.type=
 const field=(form,name,label,type="text",required=false)=>{const wrap=el("label"),span=el("span",label),inp=document.createElement(type==="textarea"?"textarea":"input");inp.name=name;if(type!=="textarea")inp.type=type;inp.required=required;wrap.append(span,inp);form.append(wrap);return inp};
 const select=(form,name,label,choices)=>{const w=el("label");w.append(el("span",label));const s=document.createElement("select");s.name=name;for(const [v,t] of choices){const o=document.createElement("option");o.value=v;o.textContent=t;s.append(o)}w.append(s);form.append(w);return s};
 const title=(name,subtitle)=>{const h=el("h2",name),p=el("p",subtitle,"muted");return [h,p]};
-const state={mode:"student",view:"dashboard",course:null,timer:null,timerTicker:null,studyCard:null,calendarNotice:""};
+const state={mode:"student",view:"dashboard",course:null,timer:null,timerTicker:null,studyCard:null,calendarNotice:"",lectureNotice:""};
 const root=document.createElement("section");root.id="academicWorkspace";root.className="hidden";root.style.marginTop="12px";
 const nav=el("div","","toolbar");nav.id="academicNav";
 for(const [name,label] of [["dashboard","Overview"],["courses","Courses"],["tasks","Tasks"],["notes","Notes"],["flashcards","Flashcards"],["focus","Focus"],["calendar","Calendar"],["lectures","Lectures"]])nav.append(button(label,()=>show(name),"secondary"));
@@ -79,7 +79,7 @@ async function focus(){
 }
 async function lectures(){
   body.append(...title("Lecture recordings","Audio and transcripts stay in this browser on this device. Recording starts only when you tap Start; nothing is uploaded or synced."));
-  const status=el("p","","notice");status.setAttribute("role","status");status.textContent="Manual transcript entry is available. Web speech transcription is not used.";body.append(status);
+  const status=el("p","","notice");status.setAttribute("role","status");status.textContent=state.lectureNotice||"Manual transcript entry is available. Web speech transcription is not used.";state.lectureNotice="";body.append(status);
   const form=el("form","","panel"),name=field(form,"title","Recording title","text",true);name.placeholder="e.g. Biology lecture — cell division";
   const controls=el("div","","toolbar"),start=el("button","Start recording"),stop=button("Stop recording",()=>state.recorder?.stop(),"danger");start.type="submit";stop.hidden=true;controls.append(start,stop);form.append(controls);
   const live=el("p","Ready. Microphone access is requested only after you start.","notice");live.setAttribute("aria-live","polite");form.append(live);body.append(form);
@@ -114,7 +114,7 @@ async function lectures(){
     recorder.onstop=async()=>{clearInterval(state.recordingTicker);stream.getTracks().forEach(track=>track.stop());state.recorder=null;state.recordingStream=null;state.recordingTicker=null;stop.hidden=true;start.hidden=false;start.disabled=false;name.disabled=false;
      const audio=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});if(!audio.size){live.textContent="No audio was captured. Check microphone permission and try again.";return}
      const record={id:id(),title:state.recordingTitle,createdAt:new Date(state.recordingStartedAt).toISOString(),updatedAt:now(),durationSeconds:Math.max(0,Math.round((Date.now()-state.recordingStartedAt)/1000)),transcript:"",audio};
-     try{await put("lectures",record);live.textContent="Recording saved locally. Add a transcript below when ready.";show("lectures")}catch(error){live.textContent="Could not save this recording locally ("+(error.name||"storage error")+"). Existing recordings were left unchanged. Export is unavailable because the browser could not store the audio."}
+     try{await put("lectures",record);state.lectureNotice="Recording saved locally. Add a transcript below when ready.";live.textContent=state.lectureNotice;show("lectures")}catch(error){live.textContent="Could not save this recording locally ("+(error.name||"storage error")+"). Existing recordings were left unchanged. Export is unavailable because the browser could not store the audio."}
     };
     recorder.start(1000);tick();
    }catch(error){stream?.getTracks().forEach(track=>track.stop());state.recorder=null;recordingStatus.hidden=true;start.disabled=false;live.textContent=error.name==="NotAllowedError"?"Microphone permission was denied. Allow microphone access in browser settings, then try again.":"Could not start recording: "+(error.message||"microphone unavailable")}
