@@ -18,3 +18,10 @@
 - Add a manual, bounded source-grounded prompt preview on web and Android with per-copy consent; the app sends no AI requests.
 - Save pasted AI-assisted text separately under Archive and provide an editable disclosure statement.
 - Add evaluation cases for selected-only context, citation integrity, prompt limits, consent gating, disclosure wording, network boundary, and backup compatibility.
+
+## Unreleased — Phase 4 local lecture capture
+
+- Add user-started, locally stored lecture recordings in Student Mode on web and Android, with an active indicator, elapsed time, 15-minute and 100 MB limits, and stop-on-background behavior.
+- Add local playback, title editing, manual transcript editing, separate audio/transcript export, and confirmed deletion. Audio remains outside the existing JSON backup formats.
+- Add a Room v4→v5 lecture metadata migration and browser storage version 2; web and Android make no speech-service requests.
+- Add browser E2E coverage for recording, persistence, transcript editing, deletion, and network boundary; Android migration coverage preserves existing research/student data.

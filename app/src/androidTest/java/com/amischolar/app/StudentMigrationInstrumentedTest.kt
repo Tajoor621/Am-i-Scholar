@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.data.StudentCourse
+import com.amischolar.app.data.StudentLecture
 import com.amischolar.app.data.StudentTask
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -35,7 +36,7 @@ class StudentMigrationInstrumentedTest {
         raw.close()
 
         val db = Room.databaseBuilder(context, ScholarDatabase::class.java, name)
-            .addMigrations(ScholarDatabase.MIGRATION_1_2, ScholarDatabase.MIGRATION_2_3, ScholarDatabase.MIGRATION_3_4).build()
+            .addMigrations(ScholarDatabase.MIGRATION_1_2, ScholarDatabase.MIGRATION_2_3, ScholarDatabase.MIGRATION_3_4, ScholarDatabase.MIGRATION_4_5).build()
         try {
             runBlocking(Dispatchers.IO) {
                 assertEquals("Research before Phase 2", db.researchProjectDao().findById(1)?.title)
@@ -43,6 +44,8 @@ class StudentMigrationInstrumentedTest {
                 val courseId = dao.upsertCourse(StudentCourse(name = "Biology 301"))
                 dao.upsertTask(StudentTask(title = "Lab report", courseId = courseId, dueDate = "2026-11-03"))
                 assertEquals("Lab report", dao.observeTasks().first().single().title)
+                dao.upsertLecture(StudentLecture(id = "lecture-1", title = "Class recording", fileName = "lecture-1.m4a", createdAtEpochMillis = 2000, durationSeconds = 60))
+                assertEquals("Class recording", dao.observeLectures().first().single().title)
             }
         } finally { db.close(); context.deleteDatabase(name) }
     }

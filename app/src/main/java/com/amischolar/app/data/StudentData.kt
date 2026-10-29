@@ -150,6 +150,16 @@ data class StudentCalendarEvent(
     val source: String = "local"
 )
 
+@Entity(tableName = "student_lectures", indices = [Index("createdAtEpochMillis")])
+data class StudentLecture(
+    @PrimaryKey val id: String,
+    val title: String,
+    val fileName: String,
+    val transcript: String = "",
+    val createdAtEpochMillis: Long,
+    val durationSeconds: Long
+)
+
 @Dao
 interface StudentWorkspaceDao {
     @Query("SELECT * FROM student_courses ORDER BY id") suspend fun backupCourses(): List<StudentCourse>
@@ -201,6 +211,9 @@ interface StudentWorkspaceDao {
     @Query("DELETE FROM student_sessions") suspend fun clearSessions()
     @Query("DELETE FROM student_active_timer WHERE id=1") suspend fun clearActiveTimer()
 
+    @Query("SELECT * FROM student_lectures ORDER BY createdAtEpochMillis DESC") fun observeLectures(): Flow<List<StudentLecture>>
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertLecture(lecture: StudentLecture)
+    @Query("DELETE FROM student_lectures WHERE id=:id") suspend fun deleteLecture(id: String)
     @Query("SELECT * FROM student_calendar_events ORDER BY CASE WHEN allDay=1 THEN startDate ELSE date(startAtEpochMillis/1000,'unixepoch','localtime') END") fun observeCalendarEvents(): Flow<List<StudentCalendarEvent>>
     @Query("SELECT * FROM student_calendar_events") suspend fun getCalendarEvents(): List<StudentCalendarEvent>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertCalendarEvent(event: StudentCalendarEvent)

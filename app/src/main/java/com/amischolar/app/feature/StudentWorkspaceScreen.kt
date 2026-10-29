@@ -60,7 +60,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import org.json.JSONObject
 
-private val studentTabs = listOf("Overview", "Courses", "Tasks", "Notes", "Flashcards", "Focus", "Calendar")
+private val studentTabs = listOf("Overview", "Courses", "Tasks", "Notes", "Flashcards", "Focus", "Calendar", "Lectures")
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -223,6 +223,7 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                         val thisWeek = (0..6).map { offset -> LocalDate.now().minusDays((6 - offset).toLong()) }
                         thisWeek.forEach { day -> val seconds = sessions.filter { Instant.ofEpochMilli(it.startedAtEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate() == day }.sumOf { it.durationSeconds }; Column { Text("${day.dayOfWeek.name.take(3)} · ${seconds / 60} min"); LinearProgressIndicator(progress = (seconds.toFloat() / 3600f).coerceIn(0f, 1f), modifier = Modifier.fillMaxWidth()) } }
                     }
+                    "Lectures" -> LectureCaptureScreen(studentDao)
                     "Calendar" -> {
                         Text("Unified calendar · device timezone", style = MaterialTheme.typography.titleLarge)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

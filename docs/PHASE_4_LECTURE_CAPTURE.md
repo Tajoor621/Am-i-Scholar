@@ -1,0 +1,43 @@
+# Phase 4 — Local lecture capture
+
+## Goal
+
+Let students record lecture audio with an unmistakable recording state and keep transcripts editable and local. Recording begins only after a direct user action and microphone permission. The app must never upload, sync, or send audio to speech or AI services.
+
+## Privacy and platform boundary
+
+- Microphone access is requested only after the user taps Start recording.
+- Show a persistent recording indicator and elapsed time while the microphone is active; stopping is always one tap away.
+- Save recordings in local browser storage or Android app-private storage. No analytics, network requests, background recording, or automatic upload.
+- Web supports local recording and manual transcript entry. Do not use Web Speech or another service unless it can prove on-device operation; this phase has no web speech service.
+- Transcripts are manual or pasted in both apps in this increment. No speech-recognition API or cloud fallback runs; a future transcriber must prove fully on-device operation before it is added.
+- Limit capture duration and storage size. Surface quota/full-storage errors without losing existing recordings.
+- Let users play, rename, edit transcripts, export audio/transcript locally, and delete with confirmation.
+- Existing research/student backups must stay compatible; lecture audio is not silently embedded into the existing JSON backups.
+
+## Evaluation set
+
+1. No recording begins before user action and permission.
+2. Visible recording state and elapsed time appear while active.
+3. Stop ends microphone capture and finalizes a playable local file.
+4. Reload/reopen retains saved recording metadata and transcript.
+5. Browser storage and Android app-private storage contain the recording; no network call occurs.
+6. Permission denial, unsupported codec/API, quota exhaustion, and interrupted capture produce clear recoverable states.
+7. No speech-recognition or cloud service is invoked; both platforms support manual transcript entry.
+8. Transcript edits persist and export independently from the audio file.
+9. Deletion removes metadata and local audio.
+10. Existing Phase 0–3 E2E, PWA, Android unit/lint, migration, and emulator suites remain green.
+
+## Increment increments
+
+1. Add the tested privacy contract, model/storage schema, and platform capability checks.
+2. Add local recording and manual transcript editing on web and Android.
+3. Add export/delete, migration, and regression tests; document platform-specific support.
+
+## Acceptance criteria
+
+- Web and Android controls provide user-facing recording state, editable manual transcripts, local export, and deletion.
+- The app makes no network request for audio or transcripts.
+- Android migration tests preserve research and student records through the new schema.
+- Browser E2E covers start/stop, persistence, transcript editing, local-only requests, and deletion. Android migration and emulator suites verify schema preservation and existing app workflows; real microphone, playback, and export UX remain in the later device-testing gate.
+- User-device testing remains deferred until the app and formal APK/testing URL are ready.
