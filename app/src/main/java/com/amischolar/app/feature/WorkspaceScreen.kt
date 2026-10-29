@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.amischolar.app.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,19 +70,26 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
         }
     }
     var backupStatus by remember { mutableStateOf("") }
+    var encryptedAction by remember { mutableStateOf("") }
+    var encryptedPassphrase by remember { mutableStateOf("") }
+    var encryptedConfirm by remember { mutableStateOf("") }
+    var encryptedImportBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var pendingProjectRestore by remember { mutableStateOf<ProjectBackup.Snapshot?>(null) }
     val backupExport = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         if (uri != null) scope.launch {
             try {
                 val bytes = withContext(Dispatchers.Default) {
-                    ProjectBackup.encode(ProjectBackup.Snapshot(
+                    val plain = ProjectBackup.encode(ProjectBackup.Snapshot(
                         requireNotNull(project) { "Project unavailable" }, notes, sources, evidenceLinks
                     ))
+                    if (encryptedAction == "export-ready") EncryptedBackup.encrypt(plain, encryptedPassphrase) else plain
                 }
                 withContext(Dispatchers.IO) { DocumentExporter.save(context, uri, bytes) }
-                backupStatus = "Project backup saved. Keep this file in a safe location."
+                backupStatus = if (encryptedAction == "export-ready") "Encrypted project backup saved." else "Project backup saved. Keep this file in a safe location."
             } catch (e: Exception) { backupStatus = "Backup failed: " + (e.message ?: "Unknown error") }
+            finally { encryptedAction = ""; encryptedPassphrase = ""; encryptedConfirm = "" }
         }
     }
     val backupImport = rememberLauncherForActivityResult(
@@ -89,38 +97,77 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
     ) { uri ->
         if (uri != null) scope.launch {
             try {
-                val snapshot = withContext(Dispatchers.IO) {
-                    val bytes = context.contentResolver.openInputStream(uri)?.use {
-                        val output = java.io.ByteArrayOutputStream()
-                        val chunk = ByteArray(8192)
-                        var total = 0
-                        while (true) {
-                            val count = it.read(chunk)
-                            if (count < 0) break
-                            total += count
-                            require(total <= ProjectBackup.MAX_BYTES) { "Backup exceeds size limit" }
-                            output.write(chunk, 0, count)
-                        }
-                        output.toByteArray()
+                val bytes = withContext(Dispatchers.IO) {
+                    val output = java.io.ByteArrayOutputStream()
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        val chunk = ByteArray(8192); var total = 0
+                        while (true) { val count = input.read(chunk); if (count < 0) break; total += count
+                            require(total <= EncryptedBackup.MAX_BYTES) { "Backup exceeds 10 MB" }; output.write(chunk, 0, count) }
                     } ?: error("Could not open backup")
-                    ProjectBackup.decode(bytes)
+                    output.toByteArray()
                 }
-                val newId = withContext(Dispatchers.IO) {
-                    database.withTransaction {
-                        val id = projectDao.insert(snapshot.project.copy(id = 0))
-                        val noteIds = snapshot.notes.map { dao.insertNote(it.copy(id = 0, projectId = id)) }
-                        val sourceIds = snapshot.sources.map { dao.insertSource(it.copy(id = 0, projectId = id)) }
-                        snapshot.links.forEach { link ->
-                            dao.insertEvidenceLink(EvidenceLink(projectId = id,
-                                claimNoteId = noteIds[link.noteIndex], sourceId = sourceIds[link.sourceIndex],
-                                status = link.status, rationale = link.rationale))
-                        }
-                        id
-                    }
-                }
-                backupStatus = "Restored as a separate project (ID $newId). Return to My papers to open it."
-            } catch (e: Exception) { backupStatus = "Restore failed; no partial project saved: " + (e.message ?: "Invalid backup") }
+                if (EncryptedBackup.isEnvelope(bytes)) { encryptedImportBytes = bytes; encryptedAction = "import" }
+                else pendingProjectRestore = withContext(Dispatchers.IO) { ProjectBackup.decode(bytes) }
+            } catch (e: Exception) { backupStatus = "Backup validation failed: " + (e.message ?: "Invalid backup") }
         }
+    }
+    if (encryptedAction == "export" || encryptedAction == "import") AlertDialog(
+        onDismissRequest = { encryptedAction = ""; encryptedPassphrase = ""; encryptedConfirm = ""; encryptedImportBytes = null },
+        title = { Text(if (encryptedAction == "export") "Encrypt project backup" else "Decrypt project backup") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (encryptedAction == "export") "Use a passphrase of at least 12 characters. Keep it separately; it cannot be recovered." else "Enter the passphrase used when this file was exported.")
+                OutlinedTextField(encryptedPassphrase, { encryptedPassphrase = it }, label = { Text("Passphrase") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                if (encryptedAction == "export") OutlinedTextField(encryptedConfirm, { encryptedConfirm = it }, label = { Text("Confirm passphrase") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = { TextButton(onClick = {
+            if (encryptedPassphrase.length < 12) backupStatus = "Passphrase must be at least 12 characters."
+            else if (encryptedAction == "export" && encryptedPassphrase != encryptedConfirm) backupStatus = "Passphrases do not match."
+            else if (encryptedAction == "export") { encryptedAction = "export-ready"; backupExport.launch("am-i-scholar-encrypted-project-$projectId.json") }
+            else {
+                val bytes = encryptedImportBytes
+                scope.launch {
+                    try {
+                        val plain = withContext(Dispatchers.Default) { EncryptedBackup.decrypt(requireNotNull(bytes), encryptedPassphrase) }
+                        pendingProjectRestore = withContext(Dispatchers.IO) { ProjectBackup.decode(plain) }
+                        backupStatus = "Encrypted file authenticated. Review the restore preview."
+                    } catch (e: Exception) { backupStatus = "Decryption failed; no data changed: " + (e.message ?: "Invalid backup") }
+                    finally { encryptedAction = ""; encryptedPassphrase = ""; encryptedImportBytes = null }
+                }
+                encryptedAction = ""
+            }
+        }) { Text(if (encryptedAction == "export") "Continue" else "Decrypt") } },
+        dismissButton = { TextButton(onClick = { encryptedAction = ""; encryptedPassphrase = ""; encryptedConfirm = ""; encryptedImportBytes = null }) { Text("Cancel") } }
+    )
+    if (pendingProjectRestore != null) {
+        val snapshot = pendingProjectRestore
+        AlertDialog(
+            onDismissRequest = { pendingProjectRestore = null },
+            title = { Text("Restore preview") },
+            text = { Text("Import “${snapshot?.project?.title}” as a new project with ${snapshot?.notes?.size ?: 0} notes and ${snapshot?.sources?.size ?: 0} sources? Existing data will remain.") },
+            confirmButton = { TextButton(onClick = {
+                pendingProjectRestore = null
+                scope.launch {
+                    try {
+                        val restored = requireNotNull(snapshot)
+                        val newId = withContext(Dispatchers.IO) {
+                            database.withTransaction {
+                                val id = projectDao.insert(restored.project.copy(id = 0))
+                                val noteIds = restored.notes.map { dao.insertNote(it.copy(id = 0, projectId = id)) }
+                                val sourceIds = restored.sources.map { dao.insertSource(it.copy(id = 0, projectId = id)) }
+                                restored.links.forEach { link -> dao.insertEvidenceLink(EvidenceLink(projectId = id,
+                                    claimNoteId = noteIds[link.noteIndex], sourceId = sourceIds[link.sourceIndex],
+                                    status = link.status, rationale = link.rationale)) }
+                                id
+                            }
+                        }
+                        backupStatus = "Restored as a separate project (ID $newId)."
+                    } catch (e: Exception) { backupStatus = "Restore failed; no partial project saved: " + (e.message ?: "Invalid backup") }
+                }
+            }) { Text("Import") } },
+            dismissButton = { TextButton(onClick = { pendingProjectRestore = null }) { Text("Cancel") } }
+        )
     }
     fun startNote(note: ResearchNote? = null, kind: String = "NOTE") {
         selectedNote = note; title = note?.title.orEmpty(); body = note?.content.orEmpty()
@@ -216,8 +263,12 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                 Text("Local-first research workspace", style = MaterialTheme.typography.titleLarge)
                 Text("Project backup and recovery", style = MaterialTheme.typography.titleMedium)
                 OutlinedButton(enabled = project != null, onClick = {
+                    encryptedAction = "plain-export"
                     backupExport.launch("am-i-scholar-project-$projectId.json")
                 }) { Text("Export complete project backup") }
+                OutlinedButton(enabled = project != null, onClick = {
+                    encryptedAction = "export"; encryptedPassphrase = ""; encryptedConfirm = ""
+                }) { Text("Export encrypted project") }
                 OutlinedButton(onClick = { backupImport.launch(arrayOf("application/json", "*/*")) }) {
                     Text("Restore backup as a new project")
                 }

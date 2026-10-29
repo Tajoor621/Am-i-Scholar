@@ -3,6 +3,8 @@ package com.amischolar.app
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.amischolar.app.data.*
 import com.amischolar.app.feature.ProjectBackup
+import com.amischolar.app.feature.EncryptedBackup
+import com.amischolar.app.feature.FullBackup
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,6 +64,42 @@ class ProjectBackupInstrumentedTest {
                 .put("status", "supported").put("rationale", "invalid")))
         try { ProjectBackup.decode(root.toString().toByteArray()); fail("Dangling relationship accepted") }
         catch (_: IllegalArgumentException) { }
+    }
+
+
+    @Test fun browserEncryptedFixtureDecryptsOnAndroidAndTamperingFails() {
+        val fixture = """{"format":"am-i-scholar-encrypted","version":1,"kdf":"PBKDF2-HMAC-SHA-256","iterations":310000,"cipher":"AES-256-GCM","salt":"AAECAwQFBgcICQoLDA0ODw==","iv":"AAECAwQFBgcICQoL","ciphertext":"cEXk3EJgR4JHR8OS/rppuK1Y5/b0NoNTsOmcinZMGDV4wFpa+go1paDP43s="}"""
+        val decrypted = EncryptedBackup.decrypt(fixture.toByteArray(), "correct horse battery staple")
+        assertEquals("""{"fixture":"web-to-android"}""", decrypted.toString(Charsets.UTF_8))
+        try { EncryptedBackup.decrypt(fixture.toByteArray(), "wrong passphrase here"); fail("Wrong passphrase accepted") }
+        catch (_: Exception) { }
+        val changed = org.json.JSONObject(fixture).put("cipher", "AES-128-GCM").toString()
+        try { EncryptedBackup.decrypt(changed.toByteArray(), "correct horse battery staple"); fail("Modified header accepted") }
+        catch (_: Exception) { }
+    }
+
+    @Test fun encryptedAndroidEnvelopeRoundTrips() {
+        val plain = """{"format":"am-i-scholar-full","version":1,"androidProjects":[],"student":{}}""".toByteArray()
+        val encrypted = EncryptedBackup.encrypt(plain, "a sufficiently long test passphrase")
+        assertTrue(EncryptedBackup.isEnvelope(encrypted))
+        assertArrayEquals(plain, EncryptedBackup.decrypt(encrypted, "a sufficiently long test passphrase"))
+    }
+
+
+    @Test fun fullBackupPreflightAcceptsPortableResearchAndStudentSections() {
+        val snapshot = ProjectBackup.Snapshot(
+            ResearchProject(title="Web paper", researchQuestion="Question?"),
+            listOf(ResearchNote(projectId=0,title="Draft",content="Text",kind="DRAFT")),
+            listOf(ResearchSource(projectId=0,title="Source"))
+        )
+        val student = """{"format":"am-i-scholar-student","version":1,"data":{"courses":[],"tasks":[],"notes":[],"decks":[],"cards":[],"reviews":[],"sessions":[],"calendarEvents":[],"activeTimer":null}}""".toByteArray()
+        val payload = FullBackup.encode(listOf("web-paper-id" to snapshot), student)
+        val preview = FullBackup.validate(payload)
+        assertEquals(1, preview.projectCount)
+        assertEquals(2, preview.researchRecords)
+        assertEquals(0, preview.studentRecords)
+        assertEquals("web-paper-id", preview.projects.single().sourceId)
+        assertEquals("Web paper", preview.projects.single().snapshot.project.title)
     }
 
 }
