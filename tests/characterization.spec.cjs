@@ -116,9 +116,8 @@ test("source library opens saved source records; legacy web and Android backups 
  await expect(page.locator("#workspaceTitle")).toHaveText("Literature Radar");
 
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
- await page.evaluate(()=>{window.confirm=()=>true});
+ await page.on("dialog",dialog=>dialog.accept());
  await page.locator("#restoreFile").setInputFiles({name:"old-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({format:"am-i-scholar-web",version:1,projects:[{id:"old-project",title:"Version one"}],records:[]}))});
- await page.locator("#restoreFile").dispatchEvent("change");
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version one");
