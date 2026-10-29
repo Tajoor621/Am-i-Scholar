@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.data.StudentActiveTimer
@@ -268,8 +269,8 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
         title = { Text(if(encryptedAction=="export") "Encrypt full workspace backup" else "Decrypt full workspace backup") },
         text = { Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Text(if(encryptedAction=="export") "The encrypted file includes research projects and student records, but excludes lecture audio. Keep the passphrase separately; it cannot be recovered." else "Enter the passphrase used to encrypt this backup.")
-            OutlinedTextField(encryptedPassphrase,{encryptedPassphrase=it},label={Text("Passphrase")},modifier=Modifier.fillMaxWidth())
-            if(encryptedAction=="export") OutlinedTextField(encryptedConfirm,{encryptedConfirm=it},label={Text("Confirm passphrase")},modifier=Modifier.fillMaxWidth())
+            OutlinedTextField(encryptedPassphrase,{encryptedPassphrase=it},label={Text("Passphrase")},visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth())
+            if(encryptedAction=="export") OutlinedTextField(encryptedConfirm,{encryptedConfirm=it},label={Text("Confirm passphrase")},visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth())
         } },
         confirmButton = { TextButton(onClick={
             if(encryptedPassphrase.length<12) message="Passphrase must be at least 12 characters."
