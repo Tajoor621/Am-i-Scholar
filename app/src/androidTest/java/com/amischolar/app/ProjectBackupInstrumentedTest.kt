@@ -89,8 +89,8 @@ class ProjectBackupInstrumentedTest {
     @Test fun fullBackupPreflightAcceptsPortableResearchAndStudentSections() {
         val snapshot = ProjectBackup.Snapshot(
             ResearchProject(title="Web paper", researchQuestion="Question?"),
-            listOf(ResearchNote(title="Draft",content="Text",kind="DRAFT")),
-            listOf(ResearchSource(title="Source"))
+            listOf(ResearchNote(projectId=0,title="Draft",content="Text",kind="DRAFT")),
+            listOf(ResearchSource(projectId=0,title="Source"))
         )
         val student = """{"format":"am-i-scholar-student","version":1,"data":{"courses":[],"tasks":[],"notes":[],"decks":[],"cards":[],"reviews":[],"sessions":[],"calendarEvents":[],"activeTimer":null}}""".toByteArray()
         val payload = FullBackup.encode(listOf("web-paper-id" to snapshot), student)
