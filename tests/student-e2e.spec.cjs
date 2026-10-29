@@ -209,7 +209,7 @@ test("lecture capture is local, editable, persistent and deletable",async({page}
  await page.locator("#academicNav").getByRole("button",{name:"Lectures"}).click();
  await page.getByLabel("Recording title").fill("Cell Biology");
  await page.getByRole("button",{name:"Start recording"}).click();
- await expect(page.locator("#academicWorkspace [role=status]")).toBeVisible();
+ await expect(page.locator("#lectureCaptureStatus")).toBeVisible();
  await page.locator("#academicNav").getByRole("button",{name:"Tasks"}).click();
  await expect(page.locator("#academicWorkspace [role=status]")).toBeVisible();
  await page.getByRole("button",{name:"Stop lecture capture"}).click();
