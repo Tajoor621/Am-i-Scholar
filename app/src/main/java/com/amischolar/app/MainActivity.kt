@@ -41,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.amischolar.app.feature.WorkspaceScreen
 import com.amischolar.app.feature.ResearchModuleWorkspace
+import com.amischolar.app.feature.StudentWorkspaceScreen
 import com.amischolar.app.data.ResearchProject
 import com.amischolar.app.data.ScholarDatabase
 import com.amischolar.app.feature.ZeroCostPolicy
@@ -65,7 +66,14 @@ class MainActivity : ComponentActivity() {
                             onNewPaper = { navController.navigate("new-paper") },
                             onOpenModule = { navController.navigate("module/$it") },
                             onOpenProject = { navController.navigate("project/$it") },
-                            onWorkspace = { navController.navigate("workspace/$it") }
+                            onWorkspace = { navController.navigate("workspace/$it") },
+                            onStudentWorkspace = { navController.navigate("student") }
+                        )
+                    }
+                    composable("student") {
+                        StudentWorkspaceScreen(
+                            database = ScholarDatabase.getInstance(applicationContext),
+                            onBack = { navController.popBackStack() }
                         )
                     }
                     composable(
@@ -175,7 +183,8 @@ private fun HomeScreen(
     onNewPaper: () -> Unit,
     onOpenModule: (String) -> Unit,
     onOpenProject: (Long) -> Unit,
-    onWorkspace: (Long) -> Unit
+    onWorkspace: (Long) -> Unit,
+    onStudentWorkspace: () -> Unit
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Am I Scholar") }) }) { padding ->
         LazyColumn(
@@ -189,6 +198,9 @@ private fun HomeScreen(
                 Text(ZeroCostPolicy.userDisclosure(), style = MaterialTheme.typography.bodySmall)
                 Button(onClick = onNewPaper, modifier = Modifier.fillMaxWidth()) {
                     Text("＋  Start a new paper")
+                }
+                OutlinedButton(onClick = onStudentWorkspace, modifier = Modifier.fillMaxWidth()) {
+                    Text("🎓  Open student workspace")
                 }
             }
             item {

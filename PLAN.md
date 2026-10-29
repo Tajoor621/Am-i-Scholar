@@ -31,7 +31,7 @@ The original CI results did not establish a complete browser baseline because th
 
 1. **Phase 0 — baseline and characterization:** complete inventories, get existing tests passing, add characterization tests, identify and repair pre-existing failures without changing behavior.
 2. **Phase 1 — research core:** upgrade literature search/source workflow and citations additively; preserve current exports and verify backup interoperability.
-3. **Phase 2 — student tools:** expand cards, timer, tasks/calendar, and ICS flows while keeping current student modules working.
+3. **Phase 2 — student tools:** add offline ICS import/export and calendar handling, durable linked focus sessions with streak/time summaries, improve task/course/calendar flow, and deliver Student Mode parity on Android while keeping existing modules and backups interoperable. Acceptance criteria are tracked in [`docs/PHASE_2_STUDENT_TOOLS.md`](docs/PHASE_2_STUDENT_TOOLS.md).
 4. **Phase 3 — opt-in AI:** implement only after the source-grounded, privacy-preserving boundary and evaluation set are in place.
 5. **Phase 4 — lectures:** local recording/transcription with a visible recording state.
 6. **Phase 5 — data ownership and sync:** encrypted backup and opt-in user-owned sync with prior backups still restorable.
@@ -42,4 +42,4 @@ The original CI results did not establish a complete browser baseline because th
 
 Do not begin a feature phase until Phase 0 has a green regression baseline and all tests needed to characterize the touched behaviors pass in CI. For every phase, preserve existing feature entry points and data, document behavior changes in `CHANGELOG.md`, update the feature inventory and README only with verified capabilities, and record deferred items with reasons.
 
-Phase 1 has started with a test-only characterization slice. Its scope and acceptance sequence are in [`docs/PHASE_1_RESEARCH_CORE.md`](docs/PHASE_1_RESEARCH_CORE.md). No Phase 1 application code changes will land until those current-behavior tests pass.
+Phase 1 implementation is complete on its review-ready branch; browser and PWA CI passed at the current Phase 1 head. Phase 2 begins from that head on a separate dependent branch. No user-device testing begins before the app and release APK/testing URL are ready.

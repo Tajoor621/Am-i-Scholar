@@ -6,13 +6,17 @@ This update preserves the original research dashboard and 12 modules. A **Studen
 
 - Student data is stored in IndexedDB on this device. Research data remains in the existing localStorage store.
 - No account, remote synchronization, paid API, or automatic network request is introduced by Student Mode.
-- Both web modes have separate explicit JSON backup/restore controls. **These are not yet a unified web/Android backup schema.**
+- Research projects retain their existing separate backup. Student workspaces use the versioned `am-i-scholar-student` JSON backup for web/Android transfer; restore validates references before replacing records atomically. Research projects are not included.
 - Notes are stored as Markdown text; a rich rendered editor is not yet implemented.
 - Calendar currently provides a month-filtered event list, not a graphical month/week grid.
-- Focus logging is local and timer restoration uses sessionStorage; background timers are timestamp-derived.
-- Android Compose/Room parity is **not yet implemented** in this incremental web release.
+- Focus logging, active timer recovery, and study summaries are local. Web recovery uses IndexedDB and timestamp-derived timers; Android recovery uses Room.
+- Android has a Room-backed Student Workspace for courses, tasks, notes, flashcards, focus sessions, and calendar events. Android build, migration and emulator checks run in Phase 2 CI.
 - Paper linking uses optional paper ID text and requires a future relational picker.
 - Existing research modules and their evidence-verification requirements are unchanged.
+
+## Portable student backup
+
+The shared backup contains courses, tasks, notes, decks, cards, review history, focus sessions, an active timer, and imported calendar events. IDs are portable strings and timestamps are ISO-8601. Restore remaps local database IDs while keeping internal relationships. A research-paper link is retained on Android only when that paper ID already exists locally; research records remain in their separate backup. Invalid files are rejected before restore, and Android applies a valid restore in one database transaction.
 
 ## Quality gates
 
@@ -20,8 +24,7 @@ Run `node tests/web-smoke.cjs`, then `npx playwright test` with the static site 
 
 ## Next implementation phases
 
-1. Unified, versioned web/Android backup schema with migrations and atomic restore.
+1. Finish Phase 2 CI and cross-platform restore acceptance checks.
 2. Cross-workspace paper/course pickers and relational links.
 3. Month/week calendar grid, Markdown rendering and safe formatting controls.
-4. Compose/Room student feature parity and Android migrations.
-5. Browser compatibility, offline behavior and real-device acceptance tests.
+4. Browser compatibility and offline behavior; defer real-device acceptance until the formal APK/testing URL is ready.
