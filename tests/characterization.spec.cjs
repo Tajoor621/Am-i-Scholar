@@ -303,3 +303,14 @@ test("local PDF reader saves a page highlight and note with the paper",async({pa
  await expect(page.locator("#pdfSavedHighlights")).toContainText("Check the reported mechanism.");
  await expect(page.locator("#pdfTextLayer .pdf-saved-highlight")).toBeVisible();
 });
+
+const BackupCrypto=require("../backup-crypto.js");
+test("encrypted research backup round-trips and rejects wrong passphrases or tampering",async()=>{
+ const payload={format:"am-i-scholar-web",version:2,projects:[{id:"p1",title:"Local study"}],records:[],evidenceLinks:[]};
+ const encrypted=await BackupCrypto.encrypt(payload,"correct horse battery staple");
+ expect(JSON.parse(encrypted)).toMatchObject({format:"am-i-scholar-encrypted",version:1,kdf:"PBKDF2-HMAC-SHA-256",cipher:"AES-256-GCM"});
+ expect(await BackupCrypto.decrypt(encrypted,"correct horse battery staple")).toEqual(payload);
+ await expect(BackupCrypto.decrypt(encrypted,"incorrect horse battery staple")).rejects.toThrow();
+ const edited=JSON.parse(encrypted);edited.version=2;
+ await expect(BackupCrypto.decrypt(JSON.stringify(edited),"correct horse battery staple")).rejects.toThrow();
+});
