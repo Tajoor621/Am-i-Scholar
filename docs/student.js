@@ -2,7 +2,8 @@
 /* Student workspace: isolated IndexedDB store. Existing research app remains unchanged. */
 (()=> {
 const DB="amischolar-academic-v1",VERSION=2;
-const STORES=["semesters","courses","tasks","notes","decks","cards","reviews","sessions","milestones","links","preferences","lectures"];\nconst BACKUP_STORES=STORES.filter(name=>name!=="lectures");
+const STORES=["semesters","courses","tasks","notes","decks","cards","reviews","sessions","milestones","links","preferences","lectures"];
+const BACKUP_STORES=STORES.filter(name=>name!=="lectures");
 const id=()=>crypto.randomUUID();
 const now=()=>new Date().toISOString();
 const $=s=>document.querySelector(s);
