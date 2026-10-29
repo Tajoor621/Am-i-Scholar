@@ -47,3 +47,7 @@ The test fixture must cover:
 - AI response logs round-trip through research/project backups and remain separate from ordinary drafts.
 - Privacy docs disclose clipboard handoff, user-managed external provider terms/fees, and the local-only default.
 - No claim implies that AI text, citations, sources, or scientific conclusions have been verified by the app.
+
+## First implementation slice
+
+The web and Android handoff surfaces use the same limits: no more than five selected sources, a 600-character task, and an 8,000-character prompt. The app includes each selected source's local record ID, saved DOI/URL when present, verification status, and bounded evidence text. The user must review and consent before each copy. Pasted replies are saved as Archive records, not manuscript drafts. The evaluation fixture is `tests/fixtures/phase3-ai-eval.json`.

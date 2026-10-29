@@ -145,3 +145,40 @@ test("student workspace restores the shared web and Android backup shape",async(
  expect(restored.event[0]).toMatchObject({uid:"event-web-1",kind:"ics-event"});
  expect(typeof restored.event[0].startAt).toBe("number");
 });
+
+test("source-grounded AI handoff requires one-time consent and saves a separate local disclosure log",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await page.evaluate(()=>localStorage.setItem("amischolar.web.v2",JSON.stringify({
+  version:2,projects:[{id:"p-ai",title:"Local project",question:"private project question"}],
+  records:[
+   {id:"source-ai",projectId:"p-ai",moduleId:"literature-radar",title:"Selected Study",content:"Authors: A. Researcher\\nYear: 2024\\nDOI or official URL: https://doi.org/10.test/selected\\nVerified against original: Yes\\nAbstract summary (your own words): Selected finding."},
+   {id:"source-other",projectId:"p-ai",moduleId:"literature-radar",title:"Unselected secret",content:"DOI or official URL: https://secret.test/1\\nAbstract summary (your own words): secret evidence."},
+   {id:"draft-private",projectId:"p-ai",moduleId:"draft-studio",title:"Private draft",content:"never include this draft"}
+  ],evidenceLinks:[]
+ })));
+ await page.reload();
+ await page.getByRole("button",{name:"Open Draft Studio"}).click();
+ await expect(page.locator("#aiCopyPrompt")).toBeDisabled();
+ await expect(page.locator("#aiPromptPreview")).not.toContainText("private project question");
+ await expect(page.locator("#aiPromptPreview")).not.toContainText("never include this draft");
+ await page.locator("#ai-source-source-ai").check();
+ await expect(page.locator("#aiPromptPreview")).toContainText("Selected Study");
+ await expect(page.locator("#aiPromptPreview")).not.toContainText("Unselected secret");
+ await expect(page.locator("#aiCopyPrompt")).toBeDisabled();
+ await page.locator("#aiShareConsent").check();
+ await expect(page.locator("#aiCopyPrompt")).toBeEnabled();
+ await page.locator("#aiCopyPrompt").click();
+ await expect(page.locator("#aiHandoffStatus")).toContainText("this app has not sent it");
+ await expect(page.locator("#aiShareConsent")).not.toBeChecked();
+ await page.locator("#aiProvider").fill("External test provider");
+ await page.locator("#aiResponse").fill("An unverified response with [S1].");
+ await page.locator("#aiReviewed").check();
+ await page.locator("#aiSaveLog").click();
+ const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem("amischolar.web.v2")));
+ const log=stored.records.find(r=>r.moduleId==="archive"&&r.title.startsWith("AI-use log"));
+ expect(log.content).toContain("Selected source IDs: source-ai");
+ expect(log.content).toContain("External test provider");
+ expect(log.content).toContain("An unverified response");
+ expect(log.content).toContain("The app did not verify the AI output.");
+ expect(stored.records.find(r=>r.id==="draft-private").content).toBe("never include this draft");
+});

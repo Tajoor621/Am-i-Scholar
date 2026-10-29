@@ -26,3 +26,9 @@ Do not commit API keys or embed shared provider secrets in a distributed APK. Mi
 - Explain permissions and file access plainly.
 
 Before public release, replace this draft with a reviewed policy identifying the responsible entity/contact, applicable jurisdictions, retention and deletion rules, processors, security practices, user rights, and effective date. Do not claim legal compliance without review.
+
+## Phase 3 manual AI handoff
+
+The Draft Studio may prepare a bounded prompt from only source records and linked evidence notes that the user selects. Drafts, PDFs, project questions, and unselected records are excluded by default. The exact prompt is previewed before the user can copy it. A separate, one-time consent checkbox is required for each copy action. Copying places the prompt on the device clipboard; the app itself does not send an AI request or contact a model provider.
+
+The user chooses any external service and pastes the prompt there. That service may charge fees or retain data under its own terms; the app cannot control those terms. Returned text is pasted back manually and saved separately in the local Archive as AI-assisted and unverified. The user may record whether they checked claims and citations against original sources. Disclosure text is generated from that local log. No provider credentials, model SDK, AI endpoint, or background request is included.
