@@ -44,7 +44,7 @@ The test fixture must cover:
 - Existing web E2E, characterization, PWA, Android unit/lint, Room migration, and emulator suites pass.
 - New prompt/evaluation tests pass on web and Android.
 - Tests prove consent is required at the copy boundary and that only explicitly selected records enter the prompt.
-- AI response logs round-trip through research/project backups and remain separate from ordinary drafts.
+- AI response logs round-trip through research/project backups and remain separate from ordinary drafts. Web E2E verifies the Archive record survives Android-project export, and Android unit tests verify the ARCHIVE kind survives project backup encode/decode.
 - Privacy docs disclose clipboard handoff, user-managed external provider terms/fees, and the local-only default.
 - No claim implies that AI text, citations, sources, or scientific conclusions have been verified by the app.
 
