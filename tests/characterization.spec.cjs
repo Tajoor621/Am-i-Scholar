@@ -314,3 +314,8 @@ test("encrypted research backup round-trips and rejects wrong passphrases or tam
  const edited=JSON.parse(encrypted);edited.version=2;
  await expect(BackupCrypto.decrypt(JSON.stringify(edited),"correct horse battery staple")).rejects.toThrow();
 });
+
+test("Android-compatible encrypted fixture decrypts in the browser implementation",async()=>{
+ const fixture={format:"am-i-scholar-encrypted",version:1,kdf:"PBKDF2-HMAC-SHA-256",iterations:310000,cipher:"AES-256-GCM",salt:"AAECAwQFBgcICQoLDA0ODw==",iv:"AAECAwQFBgcICQoL",ciphertext:"cEXk3EJgR4JHR8OS/rppuK1Y5/b0NoNTsOmcinZMGDV4wFpa+go1paDP43s="};
+ expect(await BackupCrypto.decrypt(JSON.stringify(fixture),"correct horse battery staple")).toEqual({fixture:"web-to-android"});
+});
