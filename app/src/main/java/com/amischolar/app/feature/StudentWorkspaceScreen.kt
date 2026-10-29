@@ -50,7 +50,6 @@ import com.amischolar.app.data.StudentDeck
 import com.amischolar.app.data.StudentNote
 import com.amischolar.app.data.StudentStudySession
 import com.amischolar.app.data.StudentTask
-import com.amischolar.app.feature.LectureCaptureScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
