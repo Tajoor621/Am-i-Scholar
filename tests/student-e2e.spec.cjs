@@ -190,3 +190,38 @@ test("source-grounded AI handoff requires one-time consent and saves a separate 
  expect(backedLog.content).toContain("An unverified response");
  expect(backedLog.content).toContain("Selected source IDs: source-ai");
 });
+
+test("lecture capture is local, editable, persistent and deletable",async({page})=>{
+ const external=[];
+ page.on("request",request=>{if(!request.url().startsWith("http://127.0.0.1:8000"))external.push(request.url())});
+ await page.addInitScript(()=>{
+  const track={stop(){}};
+  Object.defineProperty(navigator,"mediaDevices",{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[track]})}});
+  window.MediaRecorder=class{
+   static isTypeSupported(){return true}
+   constructor(_stream,options={}){this.mimeType=options.mimeType||"audio/webm";this.state="inactive"}
+   start(){this.state="recording";setTimeout(()=>this.ondataavailable?.({data:new Blob(["local audio"],{type:this.mimeType})}),20)}
+   stop(){this.state="inactive";this.onstop?.()}
+  }
+ });
+ await page.goto("http://127.0.0.1:8000/");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Lectures"}).click();
+ await page.getByLabel("Recording title").fill("Cell Biology");
+ await page.getByRole("button",{name:"Start recording"}).click();
+ await expect(page.getByText(/Recording ·/)).toBeVisible();
+ await page.getByRole("button",{name:"Stop recording"}).click();
+ await expect(page.getByText(/Recording saved locally/)).toBeVisible();
+ const transcript=page.getByLabel("Transcript for Cell Biology");
+ await transcript.fill("Mitochondria produce ATP.");
+ await page.getByRole("button",{name:"Save transcript"}).click();
+ await expect(page.getByText("Transcript saved locally.")).toBeVisible();
+ await page.reload();
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Lectures"}).click();
+ await expect(page.getByLabel("Transcript for Cell Biology")).toHaveValue("Mitochondria produce ATP.");
+ expect(external).toEqual([]);
+ page.on("dialog",dialog=>dialog.accept());
+ await page.getByRole("button",{name:"Delete",exact:true}).click();
+ await expect(page.getByText("No recordings saved yet.")).toBeVisible();
+});
