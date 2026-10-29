@@ -53,6 +53,7 @@ import com.amischolar.app.data.StudentTask
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
@@ -100,6 +101,12 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     var revealed by remember { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<JSONObject?>(null) }
     var backupBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var encryptedAction by remember { mutableStateOf("") }
+    var encryptedPassphrase by remember { mutableStateOf("") }
+    var encryptedConfirm by remember { mutableStateOf("") }
+    var encryptedImportBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var fullBackupBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var pendingFullRestore by remember { mutableStateOf<FullBackup.Preview?>(null) }
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(timer) { while (true) { now = System.currentTimeMillis(); delay(1000) } }
     val importIcs = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -121,11 +128,20 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
         if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(backupBytes ?: error("No backup data")) } }
             .onSuccess { message = "Student backup exported." }.onFailure { message = "Backup export failed: ${it.message}" }
     }
+    val exportFullBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) runCatching { context.contentResolver.openOutputStream(uri)?.use { it.write(fullBackupBytes ?: error("No encrypted backup data")) } }
+            .onSuccess { message = "Encrypted full backup exported." }.onFailure { message = "Encrypted backup export failed: ${it.message}" }
+    }
     val importBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
             try {
-                val bytes = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Could not open the selected backup.") }
-                pendingRestore = StudentWorkspaceBackup.decode(bytes)
+                val bytes = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { input ->
+                    val output=java.io.ByteArrayOutputStream();val chunk=ByteArray(8192);var total=0
+                    while(true){val count=input.read(chunk);if(count<0)break;total+=count;require(total<=EncryptedBackup.MAX_BYTES){"Backup exceeds 10 MB"};output.write(chunk,0,count)}
+                    output.toByteArray()
+                } ?: error("Could not open the selected backup.") }
+                if (EncryptedBackup.isEnvelope(bytes)) { encryptedImportBytes=bytes; encryptedAction="import" }
+                else pendingRestore = StudentWorkspaceBackup.decode(bytes)
             } catch (error: Exception) { message = "Backup validation failed: ${error.message ?: "invalid backup"}" }
         }
     }
@@ -154,6 +170,7 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                         Text("Move courses, tasks, notes, flashcards, study logs and calendar events between web and Android.")
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(onClick = { scope.launch { try { backupBytes = withContext(Dispatchers.IO) { StudentWorkspaceBackup.encode(studentDao.backupCourses(), studentDao.backupTasks(), studentDao.backupNotes(), studentDao.backupDecks(), studentDao.backupCards(), studentDao.backupReviews(), studentDao.backupSessions(), studentDao.backupActiveTimer(), studentDao.getCalendarEvents()) }; exportBackup.launch("am-i-scholar-student-backup.json") } catch (error: Exception) { message = "Backup export failed: ${error.message}" } } }) { Text("Export backup") }
+                            OutlinedButton(onClick = { encryptedAction="export";encryptedPassphrase="";encryptedConfirm="" }) { Text("Export encrypted full backup") }
                             OutlinedButton(onClick = { importBackup.launch(arrayOf("application/json", "text/*")) }) { Text("Restore backup") }
                         }
                         tasks.filter { it.status != "done" }.take(5).forEach { Text("• ${it.title} · ${it.dueDate.ifBlank { "No due date" }}") }
@@ -245,6 +262,68 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                 Spacer(Modifier.height(24.dp))
             }
         }
+    }
+    if (encryptedAction == "export" || encryptedAction == "import") AlertDialog(
+        onDismissRequest = { encryptedAction="";encryptedPassphrase="";encryptedConfirm="";encryptedImportBytes=null },
+        title = { Text(if(encryptedAction=="export") "Encrypt full workspace backup" else "Decrypt full workspace backup") },
+        text = { Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Text(if(encryptedAction=="export") "The encrypted file includes research projects and student records, but excludes lecture audio. Keep the passphrase separately; it cannot be recovered." else "Enter the passphrase used to encrypt this backup.")
+            OutlinedTextField(encryptedPassphrase,{encryptedPassphrase=it},label={Text("Passphrase")},modifier=Modifier.fillMaxWidth())
+            if(encryptedAction=="export") OutlinedTextField(encryptedConfirm,{encryptedConfirm=it},label={Text("Confirm passphrase")},modifier=Modifier.fillMaxWidth())
+        } },
+        confirmButton = { TextButton(onClick={
+            if(encryptedPassphrase.length<12) message="Passphrase must be at least 12 characters."
+            else if(encryptedAction=="export"&&encryptedPassphrase!=encryptedConfirm) message="Passphrases do not match."
+            else if(encryptedAction=="export") {
+                encryptedAction="export-ready"
+                scope.launch {
+                    try {
+                        val plain=withContext(Dispatchers.IO) {
+                            val student=StudentWorkspaceBackup.encode(studentDao.backupCourses(),studentDao.backupTasks(),studentDao.backupNotes(),studentDao.backupDecks(),studentDao.backupCards(),studentDao.backupReviews(),studentDao.backupSessions(),studentDao.backupActiveTimer(),studentDao.getCalendarEvents())
+                            val workspace=database.researchWorkspaceDao()
+                            val portable=projects.map { p ->
+                                val ns=workspace.observeNotes(p.id).first()
+                                val ss=workspace.observeSources(p.id).first()
+                                val links=workspace.observeEvidenceLinks(p.id).first()
+                                p.id.toString() to ProjectBackup.Snapshot(p,ns,ss,links)
+                            }
+                            FullBackup.encode(portable,student)
+                        }
+                        fullBackupBytes=withContext(Dispatchers.Default){EncryptedBackup.encrypt(plain,encryptedPassphrase)}
+                        exportFullBackup.launch("am-i-scholar-full-backup-encrypted.json")
+                    } catch(error:Exception){message="Encrypted backup export failed: ${error.message}";encryptedAction=""}
+                }
+            } else {
+                val bytes=encryptedImportBytes
+                encryptedAction=""
+                scope.launch {
+                    try {
+                        val plain=withContext(Dispatchers.Default){EncryptedBackup.decrypt(requireNotNull(bytes),encryptedPassphrase)}
+                        pendingFullRestore=withContext(Dispatchers.IO){FullBackup.validate(plain)}
+                        message="Encrypted backup authenticated. Review its contents before restoring."
+                    } catch(error:Exception){message="Decryption or validation failed; no data changed: ${error.message}"}
+                    finally{encryptedPassphrase="";encryptedImportBytes=null}
+                }
+            }
+        }) { Text(if(encryptedAction=="export") "Continue" else "Decrypt") } },
+        dismissButton = { TextButton(onClick={encryptedAction="";encryptedPassphrase="";encryptedConfirm="";encryptedImportBytes=null}){Text("Cancel")} }
+    )
+    pendingFullRestore?.let { preview ->
+        AlertDialog(
+            onDismissRequest={pendingFullRestore=null},
+            title={Text("Full backup restore preview")},
+            text={Text("Import ${preview.projectCount} research projects (${preview.researchRecords} notes, sources and evidence links) as new projects, and replace the student workspace (${preview.studentRecords} records). Lecture recordings are excluded.")},
+            confirmButton={TextButton(onClick={
+                pendingFullRestore=null
+                scope.launch {
+                    try {
+                        val result=withContext(Dispatchers.IO){FullBackup.restore(database,preview)}
+                        message="Full backup restored: ${result.first} projects imported and student workspace restored."
+                    } catch(error:Exception){message="Restore failed; transaction rolled back: ${error.message}"}
+                }
+            }){Text("Restore full backup")}},
+            dismissButton={TextButton(onClick={pendingFullRestore=null}){Text("Cancel")}}
+        )
     }
     pendingRestore?.let { data ->
         AlertDialog(
