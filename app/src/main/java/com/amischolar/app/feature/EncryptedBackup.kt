@@ -53,7 +53,8 @@ object EncryptedBackup {
         val envelope = JSONObject(envelopeBytes.toString(UTF_8))
         require(envelope.optString("format") == FORMAT && envelope.optInt("version") == VERSION) { "Unsupported encrypted backup format" }
         val allowed = setOf("format", "version", "kdf", "iterations", "cipher", "salt", "iv", "ciphertext")
-        require(envelope.keys().asSequence().toSet() == allowed) { "Invalid encrypted backup envelope" }\n        require(envelope.optString("kdf") == KDF && envelope.optInt("iterations") == ITERATIONS &&
+        require(envelope.keys().asSequence().toSet() == allowed) { "Invalid encrypted backup envelope" }
+        require(envelope.optString("kdf") == KDF && envelope.optInt("iterations") == ITERATIONS &&
             envelope.optString("cipher") == CIPHER) { "Unsupported encryption parameters" }
         val salt64 = envelope.getString("salt")
         val iv64 = envelope.getString("iv")
