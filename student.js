@@ -22,13 +22,13 @@ const state={mode:"student",view:"dashboard",course:null,timer:null,timerTicker:
 const root=document.createElement("section");root.id="academicWorkspace";root.className="hidden";root.style.marginTop="12px";
 const nav=el("div","","toolbar");nav.id="academicNav";
 for(const [name,label] of [["dashboard","Overview"],["courses","Courses"],["tasks","Tasks"],["notes","Notes"],["flashcards","Flashcards"],["focus","Focus"],["calendar","Calendar"],["lectures","Lectures"]])nav.append(button(label,()=>show(name),"secondary"));
-root.append(nav);const body=el("div");body.id="academicBody";body.style.marginTop="15px";root.append(body);
+root.append(nav);const recordingStatus=el("div","","notice");recordingStatus.hidden=true;recordingStatus.setAttribute("role","status");recordingStatus.setAttribute("aria-live","assertive");const recordingLabel=el("span","● Recording · 00:00");const recordingStop=button("Stop lecture capture",()=>state.recorder?.stop(),"danger");recordingStatus.append(recordingLabel,recordingStop);root.append(recordingStatus);const body=el("div");body.id="academicBody";body.style.marginTop="15px";root.append(body);
 const main=document.querySelector("main"),header=main?.querySelector("header");
 if(!main||!header)return;
 const switcher=el("div","","toolbar");switcher.id="academicModeSwitcher";
 const student=button("🎓 Student Mode",()=>mode("student")),research=button("🔬 Researcher Mode",()=>mode("researcher"));
 switcher.append(student,research);header.after(switcher);switcher.after(root);
-function mode(next){state.mode=next;root.classList.toggle("hidden",next!=="student");document.querySelectorAll("main > section:not(#academicWorkspace)").forEach(e=>e.classList.toggle("hidden",next==="student"));const aside=document.querySelector("aside");if(aside)aside.classList.toggle("hidden",next==="student");const footer=main.querySelector(".footer");if(footer)footer.classList.toggle("hidden",next==="student");student.className=next==="student"?"":"secondary";research.className=next==="researcher"?"":"secondary";if(next==="student")show(state.view);else{const home=document.querySelector("#homePage");if(home)home.classList.remove("hidden")}localStorage.setItem("amischolar.workspace.mode",next)}
+function mode(next){if(next!=="student"&&state.recorder?.state==="recording")state.recorder.stop();state.mode=next;root.classList.toggle("hidden",next!=="student");document.querySelectorAll("main > section:not(#academicWorkspace)").forEach(e=>e.classList.toggle("hidden",next==="student"));const aside=document.querySelector("aside");if(aside)aside.classList.toggle("hidden",next==="student");const footer=main.querySelector(".footer");if(footer)footer.classList.toggle("hidden",next==="student");student.className=next==="student"?"":"secondary";research.className=next==="researcher"?"":"secondary";if(next==="student")show(state.view);else{const home=document.querySelector("#homePage");if(home)home.classList.remove("hidden")}localStorage.setItem("amischolar.workspace.mode",next)}
 const date=t=>t?new Date(t).toLocaleDateString():"No date";
 const text=(parent,value)=>parent.append(el("p",value));
 function show(name){state.view=name;body.replaceChildren();const routes={dashboard,courses,tasks,notes,flashcards,focus,calendar,lectures};routes[name]?.();window.scrollTo({top:0,behavior:"instant"})}
@@ -105,8 +105,8 @@ async function lectures(){
     const preferred=["audio/webm;codecs=opus","audio/webm","audio/mp4"].find(type=>MediaRecorder.isTypeSupported?.(type));
     const recorder=preferred?new MediaRecorder(stream,{mimeType:preferred}):new MediaRecorder(stream);
     const chunks=[];state.recorder=recorder;state.recordingStartedAt=Date.now();state.recordingChunks=chunks;state.recordingTitle=name.value.trim()||"Lecture recording";state.recordingStream=stream;start.hidden=true;stop.hidden=false;name.disabled=true;
-    live.textContent="● Recording · 00:00 · keep this page open. Tap Stop to finish.";
-    const tick=()=>{if(!state.recorder)return;const seconds=Math.floor((Date.now()-state.recordingStartedAt)/1000);live.textContent="● Recording · "+formatDuration(seconds)+" · saved locally on this device.";if(seconds>=900)recorder.stop()};
+    live.textContent="● Recording · 00:00 · keep this page open. Tap Stop to finish.";recordingLabel.textContent=live.textContent;recordingStatus.hidden=false;
+    const tick=()=>{if(!state.recorder)return;const seconds=Math.floor((Date.now()-state.recordingStartedAt)/1000);live.textContent="● Recording · "+formatDuration(seconds)+" · saved locally on this device.";recordingLabel.textContent=live.textContent;recordingStatus.hidden=false;if(seconds>=900)recorder.stop()};
     state.recordingTicker=setInterval(tick,1000);
     recorder.ondataavailable=event=>{if(event.data?.size){chunks.push(event.data);if(chunks.reduce((sum,part)=>sum+part.size,0)>100*1024*1024){live.textContent="The 100 MB local recording limit was reached; finishing this recording.";recorder.stop()}}};
     recorder.onerror=()=>{live.textContent="Recording was interrupted by the browser. Any completed audio will be kept if available."};
@@ -116,7 +116,7 @@ async function lectures(){
      try{await put("lectures",record);live.textContent="Recording saved locally. Add a transcript below when ready.";show("lectures")}catch(error){live.textContent="Could not save this recording locally ("+(error.name||"storage error")+"). Existing recordings were left unchanged. Export is unavailable because the browser could not store the audio."}
     };
     recorder.start(1000);tick();
-   }catch(error){stream?.getTracks().forEach(track=>track.stop());state.recorder=null;start.disabled=false;live.textContent=error.name==="NotAllowedError"?"Microphone permission was denied. Allow microphone access in browser settings, then try again.":"Could not start recording: "+(error.message||"microphone unavailable")}
+   }catch(error){stream?.getTracks().forEach(track=>track.stop());state.recorder=null;recordingStatus.hidden=true;start.disabled=false;live.textContent=error.name==="NotAllowedError"?"Microphone permission was denied. Allow microphone access in browser settings, then try again.":"Could not start recording: "+(error.message||"microphone unavailable")}
   };
  }
 function formatDuration(seconds){const value=Math.max(0,Math.floor(seconds||0));return String(Math.floor(value/60)).padStart(2,"0")+":"+String(value%60).padStart(2,"0")}
