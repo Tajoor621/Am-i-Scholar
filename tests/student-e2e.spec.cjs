@@ -181,6 +181,7 @@ test("source-grounded AI handoff requires one-time consent and saves a separate 
  expect(log.content).toContain("An unverified response");
  expect(log.content).toContain("The app did not verify the AI output.");
  expect(stored.records.find(r=>r.id==="draft-private").content).toBe("never include this draft");
+ await page.locator("#backWorkspace").click();
  await page.getByRole("button",{name:"Open Archive & Reproducibility"}).click();
  const [download]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export this paper for Android"}).click()]);
  const projectBackup=JSON.parse(await fs.readFile(await download.path(),"utf8"));
