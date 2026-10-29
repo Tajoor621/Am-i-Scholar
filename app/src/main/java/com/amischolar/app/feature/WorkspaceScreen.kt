@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.amischolar.app.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -116,8 +117,8 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(if (encryptedAction == "export") "Use a passphrase of at least 12 characters. Keep it separately; it cannot be recovered." else "Enter the passphrase used when this file was exported.")
-                OutlinedTextField(encryptedPassphrase, { encryptedPassphrase = it }, label = { Text("Passphrase") }, modifier = Modifier.fillMaxWidth())
-                if (encryptedAction == "export") OutlinedTextField(encryptedConfirm, { encryptedConfirm = it }, label = { Text("Confirm passphrase") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(encryptedPassphrase, { encryptedPassphrase = it }, label = { Text("Passphrase") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                if (encryptedAction == "export") OutlinedTextField(encryptedConfirm, { encryptedConfirm = it }, label = { Text("Confirm passphrase") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = { TextButton(onClick = {
