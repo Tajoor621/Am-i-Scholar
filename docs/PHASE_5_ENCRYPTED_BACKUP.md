@@ -45,3 +45,9 @@ Cloud sync, Google Drive, private Gist, accounts, automatic folder autosave, and
 ## Device gate
 
 Physical-device verification remains deferred until the app and formal APK/testing URL are ready.
+
+## Current implementation status
+
+The current Phase 5 PR implements the encrypted browser research-backup slice. It uses a 310,000-iteration PBKDF2-HMAC-SHA-256 derivation, a 256-bit AES-GCM key, random 16-byte salts and 12-byte IVs, and authenticated envelope metadata. Browser restore decrypts and checks the web-backup structure before showing a replacement-count confirmation. Existing unencrypted formats remain available.
+
+The remaining Phase 5 work is Android-native encrypted export/import using the same envelope, student-workspace inclusion and restore, and full cross-platform round-trip evaluation. These are intentionally called out as pending; this PR must not be treated as completing the phase. No student or audio records are included in this browser research-backup slice.
