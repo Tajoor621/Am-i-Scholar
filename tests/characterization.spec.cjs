@@ -104,7 +104,6 @@ test("each research module opens its distinct baseline workflow and structured t
 });
 
 test("source library opens saved source records; legacy web and Android backups restore",async({page})=>{
- await page.addInitScript(()=>{Object.defineProperty(window,"confirm",{configurable:true,value:()=>true})});
  await page.goto("http://127.0.0.1:8000/");
  await createPaper(page,"Source owner");
  await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
@@ -117,7 +116,9 @@ test("source library opens saved source records; legacy web and Android backups 
  await expect(page.locator("#workspaceTitle")).toHaveText("Literature Radar");
 
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
+ const restoreDialog=page.waitForEvent("dialog");
  await page.locator("#restoreFile").setInputFiles({name:"old-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({format:"am-i-scholar-web",version:1,projects:[{id:"old-project",title:"Version one"}],records:[]}))});
+ await (await restoreDialog).accept();
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version one");
