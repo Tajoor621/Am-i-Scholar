@@ -150,7 +150,7 @@ data class StudentCalendarEvent(
     val source: String = "local"
 )
 
-@Entity(tableName = "student_lectures")
+@Entity(tableName = "student_lectures", indices = [Index("createdAtEpochMillis")])
 data class StudentLecture(
     @PrimaryKey val id: String,
     val title: String,
