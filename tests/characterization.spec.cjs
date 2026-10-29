@@ -115,21 +115,26 @@ test("source library opens saved source records; legacy web and Android backups 
  await page.getByRole("button",{name:"Open record"}).click();
  await expect(page.locator("#workspaceTitle")).toHaveText("Literature Radar");
 
- page.on("dialog",dialog=>dialog.accept());
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
+ const oldWebConfirm=page.waitForEvent("dialog");
  await page.locator("#restoreFile").setInputFiles({name:"old-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({format:"am-i-scholar-web",version:1,projects:[{id:"old-project",title:"Version one"}],records:[]}))});
+ await (await oldWebConfirm).accept();
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version one");
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const android={format:"am-i-scholar-project",version:1,project:{title:"Android import",researchQuestion:"A question?",discipline:"Biology",citationStyle:"APA"},notes:[{title:"Method",content:"Local note",kind:"DRAFT"}],sources:[{title:"Source",authors:"A. Author",year:"2023",doiOrUrl:"10.1000/doi",publication:"Journal",verified:false}],evidenceLinks:[]};
+ const androidConfirm=page.waitForEvent("dialog");
  await page.locator("#restoreFile").setInputFiles({name:"android.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(android))});
+ await (await androidConfirm).accept();
  await expect(page.locator("#status")).toHaveText("Android project imported as a new browser paper.");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Android import");
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const webV2={format:"am-i-scholar-web",version:2,projects:[{id:"v2-project",title:"Version two",question:"Stored question?",discipline:"Biology",citationStyle:"APA"}],records:[{id:"v2-record",projectId:"v2-project",moduleId:"draft-studio",title:"Restored draft",content:"Preserved text",updated:1}],evidenceLinks:[]};
+ const webV2Confirm=page.waitForEvent("dialog");
  await page.locator("#restoreFile").setInputFiles({name:"current-web.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(webV2))});
+ await (await webV2Confirm).accept();
  await expect(page.locator("#status")).toHaveText("Web backup restored.");
  await page.locator("aside").getByRole("button",{name:/My papers/}).click();
  await expect(page.locator("#projectList")).toContainText("Version two");
