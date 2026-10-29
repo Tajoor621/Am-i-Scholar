@@ -102,10 +102,11 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
     val finishLatest by rememberUpdatedState(finishRecording)
     val requestMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
+            val id = UUID.randomUUID().toString()
+            val file = File(context.filesDir, "lecture-$id.m4a")
+            var media: MediaRecorder? = null
             try {
-                val id = UUID.randomUUID().toString()
-                val file = File(context.filesDir, "lecture-$id.m4a")
-                val media = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()
+                media = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()
                 media.setAudioSource(MediaRecorder.AudioSource.MIC)
                 media.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 media.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
@@ -125,7 +126,8 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
                 isRecording = true
                 message = "Recording is active. Stop is always available below."
             } catch (error: Exception) {
-                runCatching { File(context.filesDir, "lecture-$recordingId.m4a").delete() }
+                runCatching { media?.release() }
+                file.delete()
                 message = "Could not start recording: ${error.message ?: "microphone unavailable"}"
             }
         } else {
