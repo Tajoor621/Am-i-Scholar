@@ -17,7 +17,8 @@ class GroundedAiHandoffBackupTest {
         val encoded = ProjectBackup.encode(
             ProjectBackup.Snapshot(
                 project = ResearchProject(id = 7, title = "Test project"),
-                notes = listOf(original)
+                notes = listOf(original),
+                sources = emptyList()
             )
         )
         val restored = ProjectBackup.decode(encoded).notes.single()
