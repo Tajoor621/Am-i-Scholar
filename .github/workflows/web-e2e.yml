@@ -19,4 +19,4 @@ jobs:
       - name: Start static site and test mobile workflows
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 &
-          npx playwright test tests/web-e2e.spec.cjs
+          npx playwright test
