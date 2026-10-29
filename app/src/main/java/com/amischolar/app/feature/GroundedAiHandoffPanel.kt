@@ -189,7 +189,6 @@ fun GroundedAiHandoffPanel(
                 )
                 Button(
                     onClick = {
-                        val disclosure = GroundedAiHandoff.disclosure(provider, task, built.sourceIds, reviewed)
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("AI assistance disclosure", disclosureText.ifBlank { generatedDisclosure }))
                         message = "Disclosure copied."
