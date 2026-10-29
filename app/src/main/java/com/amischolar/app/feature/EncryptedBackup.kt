@@ -82,6 +82,7 @@ object EncryptedBackup {
             for (index in result.indices) result[index] = (result[index].toInt() xor u[index].toInt()).toByte()
         }
         password.fill(0)
+        block.fill(0)
         u.fill(0)
         return result
     }
