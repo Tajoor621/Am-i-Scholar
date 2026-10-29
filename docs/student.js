@@ -91,7 +91,7 @@ async function lectures(){
    const actions=el("div","","toolbar");
    actions.append(button("Save transcript",async()=>{item.transcript=transcript.value;item.updatedAt=now();try{await put("lectures",item);live.textContent="Transcript saved locally."}catch(error){live.textContent="Could not save transcript: "+(error.message||"storage error")}}));
    actions.append(button("Rename",()=>{const value=prompt("Lecture title",item.title);if(value?.trim()){item.title=value.trim();item.updatedAt=now();put("lectures",item).then(()=>{live.textContent="Lecture renamed.";show("lectures")}).catch(error=>live.textContent="Could not rename lecture: "+error.message)}}));
-   actions.append(button("Export audio",()=>downloadBlob(item.audio,safeFile(item.title)+".webm")));
+   actions.append(button("Export audio",()=>downloadBlob(item.audio,safeFile(item.title)+(item.audio.type.includes("mp4")?".m4a":".webm"))));
    actions.append(button("Export transcript",()=>downloadBlob(new Blob([item.transcript||""],{type:"text/plain;charset=utf-8"}),safeFile(item.title)+"-transcript.txt")));
    actions.append(button("Delete",async()=>{if(confirm("Delete this recording and its transcript from this device?")){try{await del("lectures",item.id);URL.revokeObjectURL(player.src);live.textContent="Lecture deleted.";show("lectures")}catch(error){live.textContent="Could not delete lecture: "+error.message}}},"danger"));
    card.append(actions);list.append(card);
