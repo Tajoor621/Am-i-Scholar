@@ -37,10 +37,11 @@ test("live literature metadata search imports a source without claiming verifica
  await page.locator("#projectTitle").fill("Research search test");
  await page.getByRole("button",{name:"Save paper"}).click();
  await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureProvider").selectOption("crossref");
  await page.locator("#literatureQuery").fill("chromosome organization");
  await page.getByRole("button",{name:"Search research metadata"}).click();
  await expect(page.locator("#literatureResults")).toContainText("Verified metadata test");
- await page.getByRole("button",{name:"Import metadata"}).click();
+ await page.locator("#literatureResults article.record").first().getByRole("button",{name:"Import metadata"}).click();
  await expect(page.locator("#recordList")).toContainText("Verified metadata test");
  await expect(page.locator("#recordList")).toContainText("Verified against original: No");
 });

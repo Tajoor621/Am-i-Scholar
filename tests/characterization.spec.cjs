@@ -1,4 +1,5 @@
 const {test,expect}=require("@playwright/test");
+const fs=require("node:fs/promises");
 
 async function createPaper(page,title="Characterization paper"){
  await page.locator("#headerNew").click();
@@ -127,6 +128,66 @@ test("student focus sessions appear in the unified calendar with dated tasks",as
  await expect(page.locator("#academicBody")).toContainText("focus");
 });
 
+test("OpenAlex search imports its returned metadata as an unverified source",async({page})=>{
+ await page.route("https://api.openalex.org/works?*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({results:[{display_name:"OpenAlex characterization",authorships:[{author:{display_name:"A. Scholar"}}],publication_year:2023,doi:"https://doi.org/10.1000/openalex",primary_location:{source:{display_name:"Example Venue"}}}]})}));
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"OpenAlex source test");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("research metadata");
+ await page.locator("#literatureProvider").selectOption("openalex");
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults")).toContainText("OpenAlex characterization");
+ await expect(page.locator("#literatureResults")).toContainText("A. Scholar");
+ await page.getByRole("button",{name:"Import metadata"}).click();
+ await expect(page.locator("#recordList")).toContainText("Verified against original: No");
+});
+
+test("offline literature search reports an error and leaves manual source entry available",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Offline search test");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("offline research query");
+ await page.evaluate(()=>{Object.defineProperty(navigator,"onLine",{configurable:true,value:false})});
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults")).toContainText("Offline: manual source entry remains available.");
+ await expect(page.locator("#recordTitle")).toBeVisible();
+ await expect(page.locator("#recordContent")).toBeVisible();
+});
+
+test("federated literature search deduplicates 20 sources and saves Open Access metadata, status, and notes",async({page})=>{
+ const crossref=Array.from({length:10},(_,n)=>({title:["Crossref title "+(n+1)],author:[{given:"Ada",family:"Author"}],DOI:"10.1000/paper-"+(n+1),published:{"date-parts":[[2024]]},"container-title":["Journal A"],abstract:"<jats:p>Crossref abstract</jats:p>"}));
+ const openalex=Array.from({length:10},(_,n)=>({display_name:"OpenAlex title "+(n+6),authorships:[{author:{display_name:"Bea Researcher"}}],publication_year:2023,doi:"https://doi.org/10.1000/paper-"+(n+6),primary_location:{source:{display_name:"Journal B"}},abstract_inverted_index:{Open:[0],Alex:[1],abstract:[2]},open_access:{is_oa:true,oa_status:"gold",best_oa_location:{landing_page_url:"https://oa.example/article"}}}));
+ const pmids=Array.from({length:10},(_,n)=>String(n+1));
+ const articles=pmids.map((id,n)=>`<PubmedArticle><MedlineCitation><PMID>${id}</PMID><Article><ArticleTitle>PubMed title ${n+11}</ArticleTitle><AuthorList><Author><ForeName>Cy</ForeName><LastName>Scholar</LastName></Author></AuthorList><Journal><Title>Journal C</Title><JournalIssue><PubDate><Year>2022</Year></PubDate></JournalIssue></Journal><Abstract><AbstractText Label="RESULTS">PubMed abstract</AbstractText></Abstract><ELocationID EIdType="doi">10.1000/paper-${n+11}</ELocationID></Article></MedlineCitation></PubmedArticle>`).join("");
+ const requestUrls=[];
+ await page.route("https://api.crossref.org/works?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({message:{items:crossref}})})});
+ await page.route("https://api.openalex.org/works?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({results:openalex})})});
+ await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({esearchresult:{idlist:pmids}})})});
+ await page.route("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?*",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/xml",body:`<?xml version="1.0"?><PubmedArticleSet>${articles}</PubmedArticleSet>`})});
+ await page.route("https://api.unpaywall.org/v2/**",route=>{requestUrls.push(route.request().url());return route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({is_oa:true,oa_status:"gold",best_oa_location:{url_for_pdf:"https://oa.example/fulltext.pdf"}})})});
+ await page.goto("http://127.0.0.1:8000/");
+ await createPaper(page,"Federated search");
+ await page.locator("#allModules").getByRole("button",{name:"Open Literature Radar"}).click();
+ await page.locator("#literatureQuery").fill("CRISPR off-target effects");
+ await page.locator("#literatureEmail").fill("researcher@example.org");
+ await page.getByRole("button",{name:"Save contact email"}).click();
+ await page.getByRole("button",{name:"Search research metadata"}).click();
+ await expect(page.locator("#literatureResults article.record")).toHaveCount(20,{timeout:15000});
+ const first=page.locator("#literatureResults article.record").nth(0);
+ await expect(first).toContainText("Crossref abstract");
+ await expect(first).toContainText("Open access: gold");
+ await expect(first.getByRole("link",{name:"Open full text"})).toHaveAttribute("href","https://oa.example/fulltext.pdf");
+ await first.locator("details summary").click();
+ await first.locator("details select").selectOption("reading");
+ await first.locator("details textarea").fill("Check sample size and methods.");
+ await first.getByRole("button",{name:"Import metadata"}).click();
+ await expect(page.locator("#recordList")).toContainText("Status: reading");
+ await expect(page.locator("#recordList")).toContainText("Notes: Check sample size and methods.");
+ expect(requestUrls.some(url=>new URL(url).searchParams.get("mailto")==="researcher@example.org")).toBeTruthy();
+ expect(requestUrls.some(url=>new URL(url).searchParams.get("email")==="researcher@example.org")).toBeTruthy();
+ expect(requestUrls.some(url=>url.includes("esearch.fcgi"))).toBeTruthy();
+});
+
 test("web, Android, student, evidence, and CSL export entry points remain available",async({page})=>{
  await page.goto("http://127.0.0.1:8000/");
  await createPaper(page,"Export owner");
@@ -162,4 +223,56 @@ test("web, Android, student, evidence, and CSL export entry points remain availa
  await page.locator("aside").getByRole("button",{name:/Backup & settings/}).click();
  const [student]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export student JSON"}).click()]);
  expect(student.suggestedFilename()).toBe("am-i-scholar-academic-backup.json");
+});
+
+test("BibTeX and RIS imports preserve common fields and export back to each format",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"Bibliography portability");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ page.on("dialog",dialog=>dialog.accept());
+ let chooserPromise=page.waitForEvent("filechooser");
+ await page.getByRole("button",{name:"Import BibTeX"}).click();
+ let chooser=await chooserPromise;
+ await chooser.setFiles({name:"sources.bib",mimeType:"application/x-bibtex",buffer:Buffer.from("@article{doe2024, author={Doe, Jane and Smith, John}, title={A {Robust} Study}, journal={Journal of Tests}, year={2024}, volume={8}, number={2}, pages={10--18}, doi={10.1234/test}}","utf8")});
+ await expect(page.locator("#recordList")).toContainText("A Robust Study");
+ chooserPromise=page.waitForEvent("filechooser");
+ await page.getByRole("button",{name:"Import RIS"}).click();chooser=await chooserPromise;
+ await chooser.setFiles({name:"sources.ris",mimeType:"application/x-research-info-systems",buffer:Buffer.from("TY  - JOUR\nID  - smith2023\nAU  - Smith, Alice\nTI  - RIS Sample Paper\nJO  - Research Journal\nPY  - 2023\nVL  - 5\nIS  - 1\nSP  - 20\nEP  - 29\nDO  - 10.5678/ris\nER  - ","utf8")});
+ await expect(page.locator("#recordList")).toContainText("RIS Sample Paper");
+ const [bib]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export BibTeX"}).click()]);
+ expect(bib.suggestedFilename()).toBe("am-i-scholar-bibliography.bib");
+ const bibText=await fs.readFile(await bib.path(),"utf8");expect(bibText).toContain("title = {A Robust Study}");expect(bibText).toContain("10.1234/test");expect(bibText).toContain("RIS Sample Paper");
+ const [ris]=await Promise.all([page.waitForEvent("download"),page.getByRole("button",{name:"Export RIS"}).click()]);
+ expect(ris.suggestedFilename()).toBe("am-i-scholar-bibliography.ris");
+ const risText=await fs.readFile(await ris.path(),"utf8");expect(risText).toContain("TI  - A Robust Study");expect(risText).toContain("DO  - 10.1234/test");expect(risText).toContain("TI  - RIS Sample Paper");
+});
+
+test("citation metadata warnings stay separate from unchanged formatted output",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"Citation warnings");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ await page.locator("#recordTitle").fill("Minimal Evidence");await page.locator("#recordContent").fill("Title: Minimal Evidence");
+ await page.getByRole("button",{name:"Save record"}).click();
+ await expect(page.locator("#citationWarnings")).toContainText("Missing author");
+ await expect(page.locator("#citationWarnings")).toContainText("Missing year");
+ await page.getByRole("button",{name:"Format bibliography offline"}).click();
+ await expect(page.locator("#cslResult")).toContainText("Minimal Evidence");
+ await expect(page.locator("#cslResult")).not.toContainText("Missing author");
+});
+
+test("local PDF reader saves a page highlight and note with the paper",async({page})=>{
+ await page.goto("http://127.0.0.1:8000/");await createPaper(page,"PDF reader annotations");
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();
+ const file={name:"reading-sample.pdf",mimeType:"application/pdf",buffer:await fs.readFile("tests/fixtures/pdf-reader-sample.pdf"),lastModified:123456};
+ await page.locator("#pdfFile").setInputFiles(file);
+ await expect(page.locator("#pdfTextLayer")).toContainText("Highlight this sentence.",{timeout:15000});
+ const selected=await page.locator("#pdfTextLayer").evaluate((root,needle)=>{const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];let all="",node;while((node=walker.nextNode())){nodes.push({node,start:all.length,end:all.length+node.textContent.length});all+=node.textContent}const begin=all.indexOf(needle);if(begin<0)return false;const finish=begin+needle.length,a=nodes.find(x=>begin>=x.start&&begin<x.end),b=nodes.find(x=>finish>x.start&&finish<=x.end);if(!a||!b)return false;const range=document.createRange();range.setStart(a.node,begin-a.start);range.setEnd(b.node,finish-b.start);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);return true},"Highlight this sentence.");
+ expect(selected).toBeTruthy();await page.locator("#pdfHighlightNote").fill("Check the reported mechanism.");
+ await expect(page.getByRole("button",{name:"Save selected text as highlight"})).toBeEnabled();
+ await page.getByRole("button",{name:"Save selected text as highlight"}).click();
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Highlight this sentence.");
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Check the reported mechanism.");
+ await expect(page.locator("#pdfTextLayer .pdf-saved-highlight")).toBeVisible();
+ await page.reload();await page.locator("aside").getByRole("button",{name:/My papers/}).click();await page.getByRole("button",{name:"Open paper"}).click();
+ await page.locator("#allModules").getByRole("button",{name:"Open Citation Center"}).click();await page.locator("#pdfFile").setInputFiles(file);
+ await expect(page.locator("#pdfSavedHighlights")).toContainText("Check the reported mechanism.");
+ await expect(page.locator("#pdfTextLayer .pdf-saved-highlight")).toBeVisible();
 });

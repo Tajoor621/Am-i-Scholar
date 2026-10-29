@@ -2,7 +2,7 @@
 
 **An offline-first, Android-first research companion that helps you move from an idea to a submission-ready research workflow—without inventing evidence.**
 
-> Status: **Bootstrap / MVP foundation.** This repository is the starting point, not a finished research-writing product. Network integrations, export engines, local-model runtimes, and advanced integrity checks are planned and must be implemented and verified before being described as available.
+> Status: **Early research-workflow MVP.** The web app includes local research records, exports, offline citation formatting, and user-initiated public metadata search. The Android app has a separate set of research providers and workflows. See the feature inventory for verified coverage and remaining gaps.
 
 ## Product principles
 
@@ -33,6 +33,15 @@
 - Unit tests for core navigation/module metadata
 - Documentation for architecture, schema, privacy, integrity, and roadmap
 - CI workflow that assembles and runs unit tests
+
+## Verified web capabilities
+
+- Literature Radar can search Crossref, OpenAlex, and PubMed concurrently, or search one provider. Results are merged by DOI and remain explicitly unverified.
+- An optional contact email is stored in this browser and sent with searches to providers that request it. When supplied, it also enables per-DOI Unpaywall Open Access lookups.
+- Imported sources retain provider, abstract, Open Access details, reading status, notes, and fetched time in the existing local source records. Search queries and email are sent only after the researcher starts a search; provider availability and browser CORS can affect results.
+- Citation Center provides offline CSL formatting, CSL-JSON/BibTeX/RIS import-export, separate warnings for missing citation metadata, and a local PDF reader with saved text highlights and notes.
+
+These web changes do not add new Android UI; Android parity is tracked in [Phase 1](docs/PHASE_1_RESEARCH_CORE.md).
 
 ## Planned research workflow
 
