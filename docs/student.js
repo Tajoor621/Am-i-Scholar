@@ -79,7 +79,7 @@ async function focus(){
 }
 async function lectures(){
   body.append(...title("Lecture recordings","Audio and transcripts stay in this browser on this device. Recording starts only when you tap Start; nothing is uploaded or synced."));
-  const status=el("p","","notice");status.setAttribute("role","status");status.textContent=state.lectureNotice||"Manual transcript entry is available. Web speech transcription is not used.";state.lectureNotice="";body.append(status);
+  const status=el("p","","notice");status.setAttribute("role","status");status.textContent=state.lectureNotice||"Manual transcript entry is available. Recordings are limited to 15 minutes and 100 MB. Web speech transcription is not used.";state.lectureNotice="";body.append(status);
   const form=el("form","","panel"),name=field(form,"title","Recording title","text",true);name.placeholder="e.g. Biology lecture — cell division";
   const controls=el("div","","toolbar"),start=el("button","Start recording"),stop=button("Stop recording",()=>state.recorder?.stop(),"danger");start.type="submit";stop.hidden=true;controls.append(start,stop);form.append(controls);
   const live=el("p","Ready. Microphone access is requested only after you start.","notice");live.setAttribute("aria-live","polite");form.append(live);body.append(form);
