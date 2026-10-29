@@ -83,10 +83,10 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
                     val plain = ProjectBackup.encode(ProjectBackup.Snapshot(
                         requireNotNull(project) { "Project unavailable" }, notes, sources, evidenceLinks
                     ))
-                    if (encryptedAction == "export") EncryptedBackup.encrypt(plain, encryptedPassphrase) else plain
+                    if (encryptedAction == "export-ready") EncryptedBackup.encrypt(plain, encryptedPassphrase) else plain
                 }
                 withContext(Dispatchers.IO) { DocumentExporter.save(context, uri, bytes) }
-                backupStatus = if (encryptedAction == "export") "Encrypted project backup saved." else "Project backup saved. Keep this file in a safe location."
+                backupStatus = if (encryptedAction == "export-ready") "Encrypted project backup saved." else "Project backup saved. Keep this file in a safe location."
             } catch (e: Exception) { backupStatus = "Backup failed: " + (e.message ?: "Unknown error") }
             finally { encryptedAction = ""; encryptedPassphrase = ""; encryptedConfirm = "" }
         }
@@ -110,7 +110,7 @@ fun WorkspaceScreen(projectId: Long, database: ScholarDatabase, onBack: () -> Un
             } catch (e: Exception) { backupStatus = "Backup validation failed: " + (e.message ?: "Invalid backup") }
         }
     }
-    if (encryptedAction.isNotBlank()) AlertDialog(
+    if (encryptedAction == "export" || encryptedAction == "import") AlertDialog(
         onDismissRequest = { encryptedAction = ""; encryptedPassphrase = ""; encryptedConfirm = ""; encryptedImportBytes = null },
         title = { Text(if (encryptedAction == "export") "Encrypt project backup" else "Decrypt project backup") },
         text = {
