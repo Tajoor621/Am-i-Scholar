@@ -99,7 +99,7 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
             }
         }
     }
-    val finishLatest by rememberUpdatedState(finishRecording)
+    val finishLatest by rememberUpdatedState(newValue = { finishRecording() })
     val requestMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
             val id = UUID.randomUUID().toString()
@@ -199,8 +199,11 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         OutlinedButton(onClick = {
                             val file = File(context.filesDir, lecture.fileName)
-                            runCatching { MediaPlayer.create(context, file).also { player -> player?.setOnCompletionListener { it.release() }; player?.start() } }
-                                .onFailure { message = "Playback failed: ${it.message}" }
+                            runCatching {
+                                val player = MediaPlayer.create(context, file) ?: error("Audio could not be opened")
+                                player.setOnCompletionListener { completed: MediaPlayer -> completed.release() }
+                                player.start()
+                            }.onFailure { error -> message = "Playback failed: ${error.message}" }
                         }) { Text("Play") }
                         OutlinedButton(onClick = { pendingExport = File(context.filesDir, lecture.fileName); exportAudio.launch(safeName(lecture.title) + ".m4a") }) { Text("Export audio") }
                         OutlinedButton(onClick = { pendingText = transcript; exportTranscript.launch(safeName(editTitle) + "-transcript.txt") }) { Text("Export transcript") }
