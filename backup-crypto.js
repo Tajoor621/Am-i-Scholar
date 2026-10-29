@@ -23,7 +23,8 @@
  async function decrypt(text,passphrase){
   if(typeof text!=="string"||encoder().encode(text).length>MAX_BYTES)throw Error("Encrypted backup exceeds 10 MB.");
   let e;try{e=JSON.parse(text)}catch{throw Error("Invalid encrypted backup JSON.");}
-  if(!e||e.format!==FORMAT||e.version!==VERSION)throw Error("Unsupported encrypted backup format.");\n  const fields=["format","version","kdf","iterations","cipher","salt","iv","ciphertext"];if(Object.keys(e).length!==fields.length||fields.some(key=>!Object.prototype.hasOwnProperty.call(e,key)))throw Error("Invalid encrypted backup envelope.");
+  if(!e||e.format!==FORMAT||e.version!==VERSION)throw Error("Unsupported encrypted backup format.");
+  const fields=["format","version","kdf","iterations","cipher","salt","iv","ciphertext"];if(Object.keys(e).length!==fields.length||fields.some(key=>!Object.prototype.hasOwnProperty.call(e,key)))throw Error("Invalid encrypted backup envelope.");
   if(e.kdf!=="PBKDF2-HMAC-SHA-256"||e.iterations!==ITERATIONS||e.cipher!=="AES-256-GCM")throw Error("Unsupported encryption parameters.");
   const salt=un64(e.salt),iv=un64(e.iv),ciphertext=un64(e.ciphertext);
   if(salt.length!==16||iv.length!==12||ciphertext.length<16||ciphertext.length>MAX_BYTES)throw Error("Invalid encrypted backup fields.");
