@@ -43,7 +43,7 @@
 - Draft Studio offers a bounded, source-grounded prompt handoff on web and Android. Only sources and linked evidence selected by the user enter the preview; copying requires one-time consent. The app does not contact a model provider. Pasted replies stay separate in the local Archive with an editable disclosure and unverified status.
 - The external AI provider is user-selected and may charge fees or retain copied data under its own terms. See the [Phase 3 boundary and evaluation plan](docs/PHASE_3_OPT_IN_AI.md) and [privacy policy draft](docs/PRIVACY_POLICY.md).
 
-Student Mode is available on web and Android. Phase 4 adds local lecture recording, playback, editable manual transcripts, local export, and deletion; recordings are excluded from the existing JSON backups and are never uploaded. See the [Phase 2](docs/PHASE_2_STUDENT_TOOLS.md), [Phase 3](docs/PHASE_3_OPT_IN_AI.md), and [Phase 4](docs/PHASE_4_LECTURE_CAPTURE.md) implementation notes for tested scope and limits.
+Student Mode is available on web and Android. Phase 4 adds local lecture recording, playback, editable manual transcripts, local export, and deletion; recordings are excluded from the existing JSON backups and are never uploaded. See the [Phase 2](docs/PHASE_2_STUDENT_TOOLS.md), [Phase 3](docs/PHASE_3_OPT_IN_AI.md), and [Phase 4](docs/PHASE_4_LECTURE_CAPTURE.md) implementation notes for tested scope and limits. Phase 5 adds an explicit passphrase-encrypted web research backup; legacy JSON import/export remains available. The current encrypted format does not yet include student workspace records, and lecture audio stays excluded.
 
 ## Planned research workflow
 
