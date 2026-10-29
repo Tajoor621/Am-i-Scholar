@@ -66,12 +66,15 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
     var deleting by remember { mutableStateOf<StudentLecture?>(null) }
     var pendingExport by remember { mutableStateOf<File?>(null) }
     var pendingText by remember { mutableStateOf("") }
+    var stopReason by remember { mutableStateOf("") }
 
     fun finishRecording() {
         val active = recorder ?: return
         val file = recordingFile
         val id = recordingId
         val started = recordingStarted
+        val reason = stopReason
+        stopReason = ""
         isRecording = false
         recorder = null
         try { active.stop() } catch (_: RuntimeException) { message = "The recording ended before audio could be finalized." }
@@ -92,7 +95,7 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 dao.upsertLecture(row)
-                message = "Recording saved in this app on this device. No audio was uploaded."
+                message = (if (reason.isBlank()) "" else "$reason ") + "Recording saved in this app on this device. No audio was uploaded."
             } catch (error: Exception) {
                 file.delete()
                 message = "Could not save lecture details: ${error.message ?: "storage error"}"
@@ -104,6 +107,7 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
         if (granted) {
             val id = UUID.randomUUID().toString()
             val file = File(context.filesDir, "lecture-$id.m4a")
+            stopReason = ""
             var media: MediaRecorder? = null
             try {
                 media = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()
@@ -114,8 +118,13 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
                 media.setMaxDuration(15 * 60 * 1000)
                 media.setMaxFileSize(100L * 1024L * 1024L)
                 media.setOnInfoListener { _, what, _ ->
-                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
-                        what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) finishLatest()
+                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                        stopReason = "The 15-minute limit was reached."
+                        finishLatest()
+                    } else if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+                        stopReason = "The 100 MB size limit was reached."
+                        finishLatest()
+                    }
                 }
                 media.prepare()
                 media.start()
@@ -175,7 +184,7 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Lecture recordings", style = MaterialTheme.typography.titleLarge)
         Text("Audio stays in this app's private storage on this device. Microphone permission is requested only when you start. Nothing is uploaded or synced.")
-        Text("Transcripts are editable and local. Add or paste a transcript manually; speech services are not used.")
+        Text("Transcripts are editable and local. Add or paste a transcript manually; speech services are not used. Each recording is limited to 15 minutes and 100 MB.")
         OutlinedTextField(title, { title = it }, label = { Text("Lecture title") }, modifier = Modifier.fillMaxWidth(), enabled = !isRecording)
         if (isRecording) {
             val seconds = ((now - recordingStarted) / 1000).coerceAtLeast(0)
