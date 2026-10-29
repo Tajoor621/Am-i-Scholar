@@ -40,6 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.amischolar.app.data.StudentLecture
 import com.amischolar.app.data.StudentWorkspaceDao
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -88,9 +89,9 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
             createdAtEpochMillis = started,
             durationSeconds = ((System.currentTimeMillis() - started) / 1000).coerceAtLeast(0)
         )
-        scope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                withContext(Dispatchers.IO) { dao.upsertLecture(row) }
+                dao.upsertLecture(row)
                 message = "Recording saved in this app on this device. No audio was uploaded."
             } catch (error: Exception) {
                 file.delete()
