@@ -133,6 +133,7 @@ fun ResearchModuleWorkspace(
                 ResearchAnalysis.journalChecklist("", "").forEach { Text("• " + it) }
                 Text("Enter the target journal and official author-guidelines URL in a submission record.")
             }
+            if (route == "draft-studio") item { GroundedAiHandoffPanel(projectId, sources, notes, dao) }
             if (route == "literature-radar") item { LiteratureSearchPanel(projectId, dao) }
             if (route == "citation-center") item {
                 Text("Citation metadata review", style = MaterialTheme.typography.titleMedium)

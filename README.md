@@ -40,8 +40,10 @@
 - An optional contact email is stored in this browser and sent with searches to providers that request it. When supplied, it also enables per-DOI Unpaywall Open Access lookups.
 - Imported sources retain provider, abstract, Open Access details, reading status, notes, and fetched time in the existing local source records. Search queries and email are sent only after the researcher starts a search; provider availability and browser CORS can affect results.
 - Citation Center provides offline CSL formatting, CSL-JSON/BibTeX/RIS import-export, separate warnings for missing citation metadata, and a local PDF reader with saved text highlights and notes.
+- Draft Studio offers a bounded, source-grounded prompt handoff on web and Android. Only sources and linked evidence selected by the user enter the preview; copying requires one-time consent. The app does not contact a model provider. Pasted replies stay separate in the local Archive with an editable disclosure and unverified status.
+- The external AI provider is user-selected and may charge fees or retain copied data under its own terms. See the [Phase 3 boundary and evaluation plan](docs/PHASE_3_OPT_IN_AI.md) and [privacy policy draft](docs/PRIVACY_POLICY.md).
 
-These web changes do not add new Android UI; Android parity is tracked in [Phase 1](docs/PHASE_1_RESEARCH_CORE.md).
+Student Mode and the manual AI handoff are available on both web and Android. See the [Phase 2](docs/PHASE_2_STUDENT_TOOLS.md) and [Phase 3](docs/PHASE_3_OPT_IN_AI.md) implementation notes for tested scope and limits.
 
 ## Planned research workflow
 

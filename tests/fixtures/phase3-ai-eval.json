@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "selected-only",
+      "expects": [
+        "selected source IDs appear",
+        "unselected content absent"
+      ]
+    },
+    {
+      "id": "no-draft-by-default",
+      "expects": [
+        "full drafts absent",
+        "project question absent unless typed by user"
+      ]
+    },
+    {
+      "id": "hard-bounds",
+      "expects": [
+        "at most 5 sources",
+        "prompt at most 8000 characters",
+        "truncation visible"
+      ]
+    },
+    {
+      "id": "citation-integrity",
+      "expects": [
+        "missing DOI remains missing",
+        "unverified source remains labeled",
+        "no invented citations instruction present"
+      ]
+    },
+    {
+      "id": "consent-gate",
+      "expects": [
+        "copy blocked without one-time consent",
+        "declined consent changes neither clipboard nor stored records"
+      ]
+    },
+    {
+      "id": "separate-log",
+      "expects": [
+        "AI response saved under Archive, not as manuscript draft",
+        "review status retained"
+      ]
+    },
+    {
+      "id": "disclosure",
+      "expects": [
+        "provider label and selected source IDs included",
+        "no claim that app verified AI output"
+      ]
+    },
+    {
+      "id": "network-boundary",
+      "expects": [
+        "no model endpoint or request is made"
+      ]
+    },
+    {
+      "id": "backup-compatibility",
+      "expects": [
+        "existing research and project backups remain readable"
+      ]
+    }
+  ]
+}

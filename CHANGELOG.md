@@ -12,3 +12,9 @@
 - Add mocked round-trip and warning-isolation coverage; include the new converter in the offline PWA cache.
 - Vendor PDF.js 6.4.299 and supporting assets for local PDF viewing, with page-linked text highlights and notes saved in project records.
 - Keep PDF bytes in memory only; add the runtime and worker/supporting data to the PWA offline cache.
+
+## Unreleased — Phase 3 opt-in AI handoff
+
+- Add a manual, bounded source-grounded prompt preview on web and Android with per-copy consent; the app sends no AI requests.
+- Save pasted AI-assisted text separately under Archive and provide an editable disclosure statement.
+- Add evaluation cases for selected-only context, citation integrity, prompt limits, consent gating, disclosure wording, network boundary, and backup compatibility.
