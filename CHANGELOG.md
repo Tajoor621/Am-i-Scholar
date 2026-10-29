@@ -1,3 +1,10 @@
+# Phase 5: Encrypted Research Backup
+
+- Add an explicit encrypted research backup export using PBKDF2-HMAC-SHA-256 and AES-256-GCM. Passwords are requested only for the current operation and are never stored.
+- Add authenticated decryption, parameter/version checks, a 10 MB limit, pre-restore record validation, and a replacement-count confirmation. Existing plaintext web and Android JSON backups remain supported.
+- Encrypted export currently contains the web research backup format. Student workspace records and Android-native encrypted import/export are not included in this implementation slice; cloud sync, autosave, and lecture audio remain excluded.
+- Add characterization coverage for round-trip decryption, wrong passphrases, and modified envelope metadata.
+
 # Changelog
 
 ## Unreleased — Phase 1 federated literature discovery
