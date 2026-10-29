@@ -19,7 +19,7 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
         composeRule.onNodeWithText("Student workspace").assertIsDisplayed()
         composeRule.onNodeWithText("Your coursework and study progress stays on this device.").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("student-tab-focus").performClick()
+        composeRule.onNodeWithTag("student-tab-focus").performScrollTo().performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Pomodoro focus · timer recovery is saved locally").assertIsDisplayed()
     }
