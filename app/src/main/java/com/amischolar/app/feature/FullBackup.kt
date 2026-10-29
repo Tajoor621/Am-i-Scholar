@@ -52,6 +52,17 @@ object FullBackup {
         }
         val studentRoot = payload.getJSONObject("student")
         val studentData = StudentWorkspaceBackup.decode(studentRoot.toString().toByteArray(Charsets.UTF_8))
+        fun validatePaperRefs(name: String) {
+            val rows = studentData.optJSONArray(name) ?: return
+            for (i in 0 until rows.length()) {
+                val paperId = rows.getJSONObject(i).optString("paperId").takeUnless { it.isBlank() || it == "null" } ?: continue
+                require(paperId in sourceIds) { "Invalid paperId reference in $name" }
+            }
+        }
+        listOf("tasks", "notes", "decks", "sessions").forEach(::validatePaperRefs)
+        studentData.optJSONObject("activeTimer")?.optString("paperId")
+            ?.takeUnless { it.isBlank() || it == "null" }
+            ?.let { require(it in sourceIds) { "Invalid paperId reference in active timer" } }
         val researchCount = projects.sumOf { it.snapshot.notes.size + it.snapshot.sources.size + it.snapshot.links.size }
         require(researchCount + projects.size <= ProjectBackup.MAX_RECORDS) { "Too many research records" }
         val studentCount = listOf("courses","tasks","notes","decks","cards","reviews","sessions","calendarEvents")
