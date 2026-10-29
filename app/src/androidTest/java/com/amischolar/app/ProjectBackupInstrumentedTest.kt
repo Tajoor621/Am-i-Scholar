@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.amischolar.app.data.*
 import com.amischolar.app.feature.ProjectBackup
 import com.amischolar.app.feature.EncryptedBackup
+import com.amischolar.app.feature.FullBackup
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -82,6 +83,23 @@ class ProjectBackupInstrumentedTest {
         val encrypted = EncryptedBackup.encrypt(plain, "a sufficiently long test passphrase")
         assertTrue(EncryptedBackup.isEnvelope(encrypted))
         assertArrayEquals(plain, EncryptedBackup.decrypt(encrypted, "a sufficiently long test passphrase"))
+    }
+
+
+    @Test fun fullBackupPreflightAcceptsPortableResearchAndStudentSections() {
+        val snapshot = ProjectBackup.Snapshot(
+            ResearchProject(title="Web paper", researchQuestion="Question?"),
+            listOf(ResearchNote(title="Draft",content="Text",kind="DRAFT")),
+            listOf(ResearchSource(title="Source"))
+        )
+        val student = """{"format":"am-i-scholar-student","version":1,"data":{"courses":[],"tasks":[],"notes":[],"decks":[],"cards":[],"reviews":[],"sessions":[],"calendarEvents":[],"activeTimer":null}}""".toByteArray()
+        val payload = FullBackup.encode(listOf("web-paper-id" to snapshot), student)
+        val preview = FullBackup.validate(payload)
+        assertEquals(1, preview.projectCount)
+        assertEquals(2, preview.researchRecords)
+        assertEquals(0, preview.studentRecords)
+        assertEquals("web-paper-id", preview.projects.single().sourceId)
+        assertEquals("Web paper", preview.projects.single().snapshot.project.title)
     }
 
 }
