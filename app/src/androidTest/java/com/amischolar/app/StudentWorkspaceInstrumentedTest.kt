@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
@@ -21,6 +22,8 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Student workspace").assertIsDisplayed()
         composeRule.onNodeWithText("Your coursework and study progress stays on this device.").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("student-tab-focus").performClick()
+        composeRule.waitForIdle()
+        composeRule.onRoot().printToLog("STUDENT_WORKSPACE_AFTER_FOCUS")
         composeRule.onNodeWithTag("student-tab-focus").assertIsSelected()
     }
 }
