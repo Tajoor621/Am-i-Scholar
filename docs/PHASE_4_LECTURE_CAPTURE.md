@@ -39,5 +39,5 @@ Let students record lecture audio with an unmistakable recording state and keep 
 - Web and Android controls provide user-facing recording state, editable manual transcripts, local export, and deletion.
 - The app makes no network request for audio or transcripts.
 - Android migration tests preserve research and student records through the new schema.
-- E2E and emulator tests cover start/stop, persistence, transcript, export, and delete flows.
+- Browser E2E covers start/stop, persistence, transcript editing, local-only requests, and deletion. Android migration and emulator suites verify schema preservation and existing app workflows; real microphone, playback, and export UX remain in the later device-testing gate.
 - User-device testing remains deferred until the app and formal APK/testing URL are ready.
