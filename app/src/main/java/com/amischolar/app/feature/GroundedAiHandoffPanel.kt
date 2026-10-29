@@ -79,7 +79,7 @@ fun GroundedAiHandoffPanel(
             Text("This app makes no AI request. Preview the exact prompt, then choose whether to copy it into an external service. External services may charge fees or retain data under their own terms.")
             OutlinedTextField(
                 value = task,
-                onValueChange = { task = it.take(GroundedAiHandoff.MAX_TASK_CHARS); copiedPrompt = ""; consent = false },
+                onValueChange = { task = it.take(GroundedAiHandoff.MAX_TASK_CHARS); copiedPrompt = ""; consent = false; disclosureText = "" },
                 label = { Text("Task to request") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
@@ -94,6 +94,7 @@ fun GroundedAiHandoffPanel(
                             selectedIds = if (checked) selectedIds + source.id else selectedIds - source.id
                             copiedPrompt = ""
                             consent = false
+                            disclosureText = ""
                         }
                     )
                     Column {
@@ -133,7 +134,7 @@ fun GroundedAiHandoffPanel(
             if (copiedPrompt == built.text) {
                 OutlinedTextField(
                     value = provider,
-                    onValueChange = { provider = it.take(120) },
+                    onValueChange = { provider = it.take(120); disclosureText = "" },
                     label = { Text("External service name (optional)") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -145,7 +146,7 @@ fun GroundedAiHandoffPanel(
                     minLines = 4
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Checkbox(checked = reviewed, onCheckedChange = { reviewed = it })
+                    Checkbox(checked = reviewed, onCheckedChange = { reviewed = it; disclosureText = "" })
                     Text("I checked the returned claims and citations against the original sources.")
                 }
                 Button(
@@ -190,7 +191,7 @@ fun GroundedAiHandoffPanel(
                     onClick = {
                         val disclosure = GroundedAiHandoff.disclosure(provider, task, built.sourceIds, reviewed)
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("AI assistance disclosure", disclosure))
+                        clipboard.setPrimaryClip(ClipData.newPlainText("AI assistance disclosure", disclosureText.ifBlank { generatedDisclosure }))
                         message = "Disclosure copied."
                     },
                     modifier = Modifier.fillMaxWidth()
