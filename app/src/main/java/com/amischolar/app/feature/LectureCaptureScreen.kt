@@ -3,6 +3,7 @@ package com.amischolar.app.feature
 import android.Manifest
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Build
 import android.media.MediaRecorder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -103,7 +104,7 @@ fun LectureCaptureScreen(dao: StudentWorkspaceDao) {
             try {
                 val id = UUID.randomUUID().toString()
                 val file = File(context.filesDir, "lecture-$id.m4a")
-                val media = MediaRecorder(context)
+                val media = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()
                 media.setAudioSource(MediaRecorder.AudioSource.MIC)
                 media.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 media.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
