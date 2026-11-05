@@ -59,7 +59,7 @@ jobs:
 
       - name: Upload lint report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: am-i-scholar-lint-report
           path: app/build/reports/lint-results-debug.html
@@ -67,7 +67,7 @@ jobs:
           retention-days: 14
 
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: am-i-scholar-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
