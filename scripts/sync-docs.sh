@@ -8,7 +8,12 @@ DOCS_DIR="$ROOT_DIR/docs"
 # Files that must match exactly (web entry points and assets)
 SYNC_FILES=(
   "index.html"
+  "app.css"
+  "theme-init.js"
   "app.js"
+  "robots.txt"
+  "sitemap.xml"
+  "404.html"
   "ai-handoff.js"
   "bibliography.js"
   "citation.js"

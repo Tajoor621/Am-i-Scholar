@@ -1,3 +1,11 @@
+# Presentation and workspace clarity
+
+- Refresh the GitHub Pages workspace: document title, description, canonical URL, Open Graph and Twitter cards, PNG favicon, skip link, and stronger contrast.
+- Add a local light, dark, or match-device theme stored only in this browser. It is not part of a research backup.
+- Add paper and source search, an accessible paper picker, clearer empty states, and a last-export note.
+- Returning from Student Mode shows the dashboard again instead of every research section at once.
+- Correct the README so it matches the MIT license already in the repository and the features that actually ship.
+
 # Phase 5: Encrypted Full Workspace Backup
 
 - Add user-triggered encrypted export/import across web and Android using PBKDF2-HMAC-SHA-256 and AES-256-GCM, with passwords requested only for the current operation.

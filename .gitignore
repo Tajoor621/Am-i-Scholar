@@ -11,3 +11,5 @@ captures/
 *.jks
 *.keystore
 secrets.properties
+node_modules/
+test-results/

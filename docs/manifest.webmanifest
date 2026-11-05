@@ -1,12 +1,17 @@
 {
+  "id": "./",
+  "lang": "en",
+  "dir": "ltr",
   "name": "Am I Scholar — Research Workspace",
   "short_name": "Am I Scholar",
-  "description": "Local-first research projects and academic workflow tools",
+  "description": "Offline-first academic workspace for papers, sources, citations, evidence, and study tools. Notes stay on this device.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#151515",
+  "orientation": "any",
+  "categories": ["education", "productivity"],
+  "background_color": "#172b49",
+  "theme_color": "#172b49",
   "icons": [
     {
       "src": "./brand/icon-master.webp",

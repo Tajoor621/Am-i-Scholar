@@ -1,91 +1,84 @@
 # Am I Scholar
 
-**An offline-first, Android-first research companion that helps you move from an idea to a submission-ready research workflow—without inventing evidence.**
+Offline-first academic research and writing workspace for the browser and Android. Papers, sources, citations, evidence, and study tools stay on the device. The app does not invent citations, data, or peer reviews.
 
-> Status: **Early research-workflow MVP.** The web app includes local research records, exports, offline citation formatting, and user-initiated public metadata search. The Android app has a separate set of research providers and workflows. See the feature inventory for verified coverage and remaining gaps.
+**Live workspace:** [https://tajoor621.github.io/Am-i-Scholar/](https://tajoor621.github.io/Am-i-Scholar/)
 
-## Product principles
+The GitHub Pages site is the web app. It is not a separate marketing page.
 
-- **Evidence before prose:** draft support should be grounded in user-provided notes and traceable sources.
-- **No fabricated scholarship:** never invent citations, DOIs, research data, statistics, peer reviews, or source claims.
-- **Local-first privacy:** core project notes are stored on-device. Cloud AI or sync must be opt-in, with clear disclosure of what leaves the device.
-- **Researcher remains the author:** support planning, explanation, editing, and critique—not undisclosed ghostwriting.
-- **Integrity by design:** encourage source verification, quotation attribution, AI-use disclosure, and compliance with institutional and journal policies.
-- **Accessible and low-resource friendly:** readable type, scalable fonts, accessible targets, and graceful offline states.
+## What you can do
 
-## Initial technology baseline
+| Area | What it does | Limit |
+| --- | --- | --- |
+| Research papers | Question, discipline, and citation style, then twelve modules from Topic Lab through Archive | You write the scholarship |
+| Literature Radar | Searches Crossref, OpenAlex, and PubMed when you ask, and can check Unpaywall for open access | Metadata only. Imports stay unverified until you read the original. Browser CORS and provider limits apply |
+| Evidence, outline, draft, style | Local records, evidence links, and draft export to Markdown, HTML, or print | Checks are heuristics, not a judgment of truth |
+| Citation Center | Offline CSL drafts for APA, MLA, Chicago, IEEE, Harvard, and Vancouver; CSL-JSON, BibTeX, and RIS; local PDF highlights | A draft is not the journal’s house style |
+| AI handoff | Builds a prompt from sources you select and stores a pasted reply in the Archive | This app does not call a model. The provider you choose has its own terms |
+| Review Simulator | A checklist you fill in | Not a peer review and not a generated review |
+| Student workspace | Courses, tasks, notes, flashcards, focus timer, ICS calendar, local lecture recording | Transcripts are manual. Recordings are not uploaded and are excluded from JSON backups |
+| Backups | Web JSON, one-paper Android JSON, student JSON, and a passphrase-encrypted full backup | The passphrase cannot be recovered. Browser storage can be cleared |
+| Android app | Room database, the same twelve modules, and literature providers that also include arXiv and DOAJ | Not a byte-for-byte copy of every web control |
 
-- Kotlin, Jetpack Compose, Material 3
-- Android minimum SDK 26 (Android 8.0)
-- Room for local project persistence
-- Navigation Compose
-- DataStore for preferences
-- WorkManager for deferred work (to be integrated as features need it)
-- Retrofit/OkHttp and Kotlin Serialization for future online research providers
-- GitHub Actions Android build/test workflow
+Appearance (light, dark, or match this device), paper search, and source search are saved only as local preferences. They are not part of a research backup.
 
-## First foundation included
+## Principles
 
-- Material 3 light/dark theme
-- Dashboard and New Paper form
-- Navigation entry points for the planned research workflow
-- Room entities/DAO/database foundation for research projects
-- Unit tests for core navigation/module metadata
-- Documentation for architecture, schema, privacy, integrity, and roadmap
-- CI workflow that assembles and runs unit tests
+- Evidence before prose. Draft support stays tied to notes and sources you provide.
+- No fabricated scholarship. The app does not invent citations, DOIs, statistics, or reviewer comments.
+- Local-first privacy. Core notes stay on the device. A literature search or a prompt you copy is an explicit action.
+- You remain the author. The tools plan, check, and export. They do not ghostwrite a submission.
+- Readable and usable offline after the first load, including from the installed web app.
 
-## Verified web capabilities
+## Use the web app
 
-- Literature Radar can search Crossref, OpenAlex, and PubMed concurrently, or search one provider. Results are merged by DOI and remain explicitly unverified.
-- An optional contact email is stored in this browser and sent with searches to providers that request it. When supplied, it also enables per-DOI Unpaywall Open Access lookups.
-- Imported sources retain provider, abstract, Open Access details, reading status, notes, and fetched time in the existing local source records. Search queries and email are sent only after the researcher starts a search; provider availability and browser CORS can affect results.
-- Citation Center provides offline CSL formatting, CSL-JSON/BibTeX/RIS import-export, separate warnings for missing citation metadata, and a local PDF reader with saved text highlights and notes.
-- Draft Studio offers a bounded, source-grounded prompt handoff on web and Android. Only sources and linked evidence selected by the user enter the preview; copying requires one-time consent. The app does not contact a model provider. Pasted replies stay separate in the local Archive with an editable disclosure and unverified status.
-- The external AI provider is user-selected and may charge fees or retain copied data under its own terms. See the [Phase 3 boundary and evaluation plan](docs/PHASE_3_OPT_IN_AI.md) and [privacy policy draft](docs/PRIVACY_POLICY.md).
+The site works from GitHub Pages. To run this repository locally:
 
-Student Mode is available on web and Android. Phase 4 adds local lecture recording, playback, editable manual transcripts, local export, and deletion; recordings are excluded from the existing JSON backups and are never uploaded. See the [Phase 2](docs/PHASE_2_STUDENT_TOOLS.md), [Phase 3](docs/PHASE_3_OPT_IN_AI.md), and [Phase 4](docs/PHASE_4_LECTURE_CAPTURE.md) implementation notes for tested scope and limits. Phase 5 adds explicit passphrase-encrypted full backups across web and Android, including research projects and student workspace records. Legacy JSON import/export remains available; lecture audio stays excluded.
+```bash
+python3 -m http.server 8000
+```
 
-## Planned research workflow
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/). For the copy that GitHub Pages publishes, serve the `docs/` directory the same way.
 
-1. Onboarding & Integrity
-2. Topic Lab
-3. Literature Radar
-4. Evidence Matrix
-5. Outline Architect
-6. Draft Studio
-7. Humaniser & Style Coach
-8. Citation Center
-9. Originality & Integrity
-10. Review Simulator (clearly simulated, never real peer review)
-11. Journal Match & Submission Kit
-12. Revision & Response
-13. Archive & Reproducibility
+After you change a web file, mirror it into `docs/` with `scripts/sync-docs.sh`. Pages publishes `docs/`.
 
-These are product areas, not a claim that all are implemented in this bootstrap.
+Install the app from the browser when the device offers it. The service worker caches the workspace for offline use. Live literature search still needs a network.
 
-## Build locally
+## Android
 
-1. Install Android Studio with a compatible Android SDK (API 35).
-2. Open this repository as a project in Android Studio.
-3. Allow Gradle to sync and download dependencies.
-4. Run the `app` configuration on an Android 8.0+ device or emulator.
+1. Install Android Studio with Android SDK 35.
+2. Open this repository and let Gradle sync.
+3. Run the `app` configuration on Android 8.0 or newer (minimum SDK 26).
 
-This repository intentionally does not commit generated build output or local machine settings. Android Studio can generate a Gradle wrapper if needed. The CI workflow provisions Gradle and the Android SDK.
+Generated build output and local machine settings are not committed. The CI workflow provisions Gradle and the Android SDK. A Gradle wrapper is not checked in.
 
-## Integrity and privacy
+## Checks
 
-Read:
+```bash
+node tests/web-smoke.cjs
+```
+
+Browser coverage is Playwright (`tests/web-e2e.spec.cjs`, `tests/student-e2e.spec.cjs`, `tests/characterization.spec.cjs`). GitHub Actions runs those tests, a PWA smoke check, and the Android build and emulator workflows.
+
+## Layout
+
+- `index.html`, `app.js`, `student.js`, and the modules next to them are the web workspace.
+- `docs/` is the GitHub Pages copy of that workspace, plus the longer design notes.
+- `app/` is the Android project (Kotlin, Jetpack Compose, Material 3, Room).
+- `brand/` holds the approved emblem and generated icons.
+- `vendor/` includes PDF.js and citeproc, which keep their own licenses.
+
+## Privacy and integrity
+
+- [Privacy notes](docs/PRIVACY_POLICY.md)
+- [Academic integrity](docs/ACADEMIC_INTEGRITY.md)
+- [Feature inventory](docs/FEATURE_INVENTORY.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [Database schema](docs/DATABASE_SCHEMA.md)
-- [Privacy policy draft](docs/PRIVACY_POLICY.md)
-- [Academic integrity policy](docs/ACADEMIC_INTEGRITY.md)
-- [MVP roadmap](docs/ROADMAP.md)
 
-This project is not affiliated with a university, publisher, or research database. API availability, access limits, journal policies, fees, and licensing must be verified at the time of use.
+This project is not affiliated with a university, publisher, or research database. Journal rules, fees, and provider limits have to be checked at the time you submit.
 
 ## License
 
-No open-source license has been selected yet. Until a license is added, the repository contents remain subject to the default copyright rules.
-## Official logo and app icons (621/24)
+Original code in this repository is under the [MIT license](LICENSE). Copyright (c) 2026 Tajoor621.
 
-The user-approved black-and-gold academic emblem replaces the previous launcher artwork in the web PWA and Android. The cropped emblem is used for small app icons; the complete logo is available in the downloadable brand-assets package. The repository includes the approved compressed WebP emblem, generated PWA PNG icons (16–512 px), iOS touch icon, Android density-specific launcher PNGs, and adaptive-icon resources. Regenerate sizes with `python brand/generate_assets.py` (Pillow required). Web and `docs/` icon assets are mirrored for GitHub Pages. See [branding documentation](docs/BRANDING_AND_SCREENSHOTS.md).
+Bundled citeproc-js is dual-licensed under CPAL-1.0 or AGPL-3.0. See `vendor/` and `app/src/main/assets/csl/`. The MIT license applies to original code. Use of citeproc-js follows the license you choose for that library.

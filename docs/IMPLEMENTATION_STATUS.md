@@ -1,6 +1,16 @@
 # Am I Scholar: implementation status
 
-The app is an offline-first Android research workspace. The public GitHub Pages URL hosts documentation; it is **not** the native Android app.
+**Current as of 2026-11-05.** The public site [https://tajoor621.github.io/Am-i-Scholar/](https://tajoor621.github.io/Am-i-Scholar/) is the web workspace, not a brochure. The same offline-first product also has an Android app in `app/`. Use [the feature inventory](FEATURE_INVENTORY.md) for entry points and test coverage. The sections below the historical divider were written for an earlier bootstrap and are kept so older notes remain traceable.
+
+What is in the product now, with the limits that still apply:
+
+- Web: dashboard, papers, twelve research modules, source library, student workspace, local lecture recording, and plain plus encrypted backups.
+- Literature search on the web asks Crossref, OpenAlex, and PubMed only after you run it. Android can also query arXiv and DOAJ. Results stay unverified until you check the original.
+- Citation Center formats draft bibliographies offline in seven bundled CSL styles and exchanges CSL-JSON, BibTeX, and RIS. Output is not a journal’s certification.
+- Draft Studio can build a prompt from sources you select. The app does not call a model provider.
+- There is no account, cloud sync, or invented peer review. Lecture audio stays on the device and out of JSON backups.
+
+## Historical notes
 
 ## Implemented in development branch
 
@@ -13,7 +23,7 @@ The app is an offline-first Android research workspace. The public GitHub Pages 
 - Room schema migration from v1 to v2, preserving existing projects.
 - CI build and JVM unit-test tasks.
 
-## Not yet implemented
+## Not yet implemented (outdated bootstrap list — do not treat as current)
 
 - Online discovery via OpenAlex, Crossref, PubMed, Semantic Scholar, arXiv, CORE or other APIs.
 - PDF ingestion and text extraction, automatic DOI resolution and citation verification.

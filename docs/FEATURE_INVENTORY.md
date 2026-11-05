@@ -2,6 +2,19 @@
 
 This inventory records observable entry points, persistence touched, and existing tests before feature work. “Test” names refer to files in `tests/` or Android test source sets. UNVERIFIED means the repository contains no test that directly establishes the stated behavior; code inspection is not a substitute for a passing characterization test.
 
+## Presentation (2026-11-05)
+
+Additive only. Backup file schemas are unchanged. Theme and last-export time use `localStorage` key `amischolar.preferences`, which is not part of a research or student backup.
+
+| Feature | Entry | Test |
+| --- | --- | --- |
+| Light, dark, and match-device theme | Settings radios `input[name=themeChoice]` | `characterization.spec.cjs` reloads a dark theme, then returns to light |
+| Paper and source search | `#paperQuery`, `#libraryQuery` | `characterization.spec.cjs` |
+| Paper picker | `#paperPicker` when several papers exist and none is open | `characterization.spec.cjs` |
+| Document title, skip link, canonical and Open Graph tags | `#pageTitle`, `a.skip`, `index.html` head | `characterization.spec.cjs` and `tests/web-smoke.cjs` |
+| Student mode restores only the dashboard | Researcher Mode after Student Mode | `characterization.spec.cjs` checks other sections stay hidden |
+| Last export label and storage estimate | `#lastBackup`, `#storageEstimate` | Code inspection. Export files are unchanged. |
+
 ## Web research workspace
 
 | Feature | Current entry point | Reads / writes | Existing test coverage |
