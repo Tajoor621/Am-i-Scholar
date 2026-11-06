@@ -244,7 +244,7 @@ test("student notes keep Markdown compatibility and import PDF text locally",asy
  await page.getByRole("button",{name:"Highlight"}).click();
  await expect(page.locator(".student-note-preview strong")).toContainText("bold text");
  await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
- await page.locator('#academicBody input[aria-label="Choose an image to insert"]').setInputFiles({name:"pixel.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR4nGNgYGD4DwABBAEAfH5zdwAAAABJRU5ErkJggg==","base64")});
+ await page.locator("#academicBody input[aria-label='Choose an image to insert']").setInputFiles({name:"pixel.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR4nGNgYGD4DwABBAEAfH5zdwAAAABJRU5ErkJggg==","base64")});
  await expect(page.locator("#studentNoteEditorStatus")).toContainText("Image resized and added");
  await expect(page.locator(".student-note-preview img")).toHaveCount(1);
  await page.locator('#academicBody input[aria-label="Choose a PDF to extract"]).setInputFiles({name:"reading-sample.pdf",mimeType:"application/pdf",buffer:await fs.readFile("tests/fixtures/pdf-reader-sample.pdf")});
