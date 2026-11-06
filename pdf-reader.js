@@ -35,10 +35,11 @@ const PDFReader=(()=>{
   try {
    if(documentProxy.numPages>maxPages)throw Error("This import is limited to "+maxPages+" pages. Split the PDF into smaller parts.");
    const pages=[];let length=0;
-   for(let number=1;number<=documentProxy.numPages;number++){const page=await documentProxy.getPage(number),content=await page.getTextContent(),text=content.items.map(item=>typeof item.str==="string"?item.str:"").filter(Boolean).join(" ").replace(/\\s+/g," ").trim();if(text){pages.push("Page "+number+"\\n"+text);length+=text.length}if(length>maxChars)throw Error("Extracted text exceeds the "+maxChars+" character limit. Import fewer pages at a time.")}
+   for(let number=1;number<=documentProxy.numPages;number++){const page=await documentProxy.getPage(number),content=await page.getTextContent(),text=content.items.map(item=>typeof item.str==="string"?item.str:"").filter(Boolean).join(" ").replace(/\s+/g," ").trim();if(text){pages.push("Page "+number+"\n"+text);length+=text.length}if(length>maxChars)throw Error("Extracted text exceeds the "+maxChars+" character limit. Import fewer pages at a time.")}
    if(!pages.length)throw Error("No selectable text was found. This PDF may contain scanned images.");
-   return pages.join("\\n\\n")
+   return pages.join("\n\n")
   } finally {await documentProxy.destroy?.()}
  }
  return {render,dispose,extractText};
+
 })();
