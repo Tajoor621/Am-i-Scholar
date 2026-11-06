@@ -24,3 +24,13 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Pomodoro focus · timer recovery is saved locally").assertIsDisplayed()
     }
 }
+
+    @Test fun studentNotesPreviewMarkdownAndExposeLocalImageControl() {
+        composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
+        composeRule.onNodeWithTag("student-tab-notes").performScrollTo().performClick()
+        composeRule.onNodeWithText("Bold").performScrollTo().performClick()
+        composeRule.onNodeWithText("bold text").assertIsDisplayed()
+        composeRule.onNodeWithText("Highlight").assertIsDisplayed()
+        composeRule.onNodeWithText("Image").assertIsDisplayed()
+        composeRule.onNodeWithText("Preview").assertIsDisplayed()
+    }
