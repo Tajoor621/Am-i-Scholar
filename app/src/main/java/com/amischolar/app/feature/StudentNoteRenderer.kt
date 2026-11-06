@@ -105,7 +105,7 @@ private fun NoteImage(alt: String, encoded: String) {
             runCatching { val bytes = Base64.decode(encoded, Base64.DEFAULT); BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
         }
     }
-    if (bitmap != null) Image(bitmap.asImageBitmap(), contentDescription = alt.ifBlank { "Note image" }, modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp), contentScale = ContentScale.Fit)
+    val loadedBitmap = bitmap\n    if (loadedBitmap != null) Image(loadedBitmap.asImageBitmap(), contentDescription = alt.ifBlank { "Note image" }, modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp), contentScale = ContentScale.Fit)
 }
 
 @Composable
