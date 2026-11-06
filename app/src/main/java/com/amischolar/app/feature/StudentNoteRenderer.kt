@@ -38,8 +38,8 @@ private val NOTE_CODE_FENCE = String(CharArray(3) { 96 })
 
 fun encodeStudentNoteImage(context: Context, uri: Uri): String {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-        ?: error("Could not open the selected image.")
+    val boundsStream = context.contentResolver.openInputStream(uri) ?: error("Could not open the selected image.")
+    boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
     require(bounds.outWidth > 0 && bounds.outHeight > 0) { "The selected image could not be read." }
     var sample = 1
     while (bounds.outWidth / sample > MAX_NOTE_IMAGE_EDGE * 2 || bounds.outHeight / sample > MAX_NOTE_IMAGE_EDGE * 2) sample *= 2
@@ -106,13 +106,14 @@ private fun NoteImage(alt: String, encoded: String) {
 @Composable
 private fun markdownInline(text: String): AnnotatedString {
     val pattern = Regex("(\\*\\*[^*]+\\*\\*|==[^=]+==)")
+    val highlightColor = MaterialTheme.colorScheme.tertiaryContainer
     return buildAnnotatedString {
         var cursor = 0
         for (match in pattern.findAll(text)) {
             append(text.substring(cursor, match.range.first))
             val token = match.value
             if (token.startsWith("**")) withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(token.substring(2, token.length - 2)) }
-            else withStyle(SpanStyle(background = MaterialTheme.colorScheme.tertiaryContainer)) { append(token.substring(2, token.length - 2)) }
+            else withStyle(SpanStyle(background = highlightColor)) { append(token.substring(2, token.length - 2)) }
             cursor = match.range.last + 1
         }
         append(text.substring(cursor))
