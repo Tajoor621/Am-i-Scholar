@@ -29,8 +29,8 @@ const StudentNotesEditor=(()=>{
  async function imageData(file){
   if(!file||!file.type.startsWith("image/"))throw Error("Choose an image file.");
   if(file.size>12*1024*1024)throw Error("Choose an image smaller than 12 MB.");
-  const url=URL.createObjectURL(file);
-  try{const image=new Image();image.src=url;await image.decode();const scale=Math.min(1,MAX_IMAGE_PIXELS/Math.max(image.width,image.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);const data=canvas.toDataURL("image/jpeg",.72);if(data.length>MAX_IMAGE_BYTES*1.4)throw Error("This image is too detailed for a portable note. Choose a smaller image.");return data}finally{URL.revokeObjectURL(url)}
+  const source=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error("The source image cannot be read."));reader.readAsDataURL(file)});
+  const image=new Image();image.src=source;await image.decode();const scale=Math.min(1,MAX_IMAGE_PIXELS/Math.max(image.width,image.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);const data=canvas.toDataURL("image/jpeg",.72);if(data.length>MAX_IMAGE_BYTES*1.4)throw Error("This image is too detailed for a portable note. Choose a smaller image.");return data
  }
  function enhance(textarea){
   if(!textarea||textarea.dataset.richNotes==="true")return;
