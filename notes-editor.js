@@ -3,8 +3,8 @@ const StudentNotesEditor=(()=>{
  const MAX_NOTE_CHARS=2000000,MAX_IMAGE_BYTES=320000,MAX_IMAGE_PIXELS=1400,FENCE=String.fromCharCode(96).repeat(3);
  const el=(tag,text="",className="")=>{const node=document.createElement(tag);node.textContent=text;node.className=className;return node};
  function appendInline(parent,text){
-  const pattern=/(\*\*[^*]+\*\*|==[^=]+==)/g;let cursor=0;
-  for(const match of String(text).matchAll(pattern)){parent.append(document.createTextNode(text.slice(cursor,match.index)));const token=match[0],node=el(token.startsWith("**")?"strong":"mark",token.slice(2,-2));parent.append(node);cursor=match.index+token.length}
+  const pattern=/(!\[([^\]]*)\]\((data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+)\)|\*\*[^*]+\*\*|==[^=]+==)/g;let cursor=0;
+  for(const match of String(text).matchAll(pattern)){parent.append(document.createTextNode(text.slice(cursor,match.index)));const token=match[0];if(token.startsWith("![")){const image=token.match(/^!\[([^\]]*)\]\((data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+)\)$/),img=document.createElement("img");img.alt=image[1]||"Note image";img.src=image[2];img.loading="lazy";parent.append(img)}else parent.append(el(token.startsWith("**")?"strong":"mark",token.slice(2,-2)));cursor=match.index+token.length}
   parent.append(document.createTextNode(String(text).slice(cursor)))
  }
  function renderPreview(host,source){
