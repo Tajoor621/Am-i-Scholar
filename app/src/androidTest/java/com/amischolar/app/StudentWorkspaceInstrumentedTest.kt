@@ -32,4 +32,11 @@ class StudentWorkspaceInstrumentedTest {
         composeRule.onNodeWithText("Image").assertIsDisplayed()
         composeRule.onNodeWithText("Preview").assertIsDisplayed()
     }
+    @Test fun tasksExposeOptionalLocalReminderControls() {
+        composeRule.onNodeWithText("Open student workspace", substring = true).performClick()
+        composeRule.onNodeWithTag("student-tab-tasks").performScrollTo().performClick()
+        composeRule.onNodeWithText("Optional reminders use local Android notifications; they are not uploaded.").assertIsDisplayed()
+        composeRule.onNodeWithText("Reminder date (YYYY-MM-DD, optional)").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Reminder time (HH:MM, optional)").performScrollTo().assertIsDisplayed()
+    }
 }

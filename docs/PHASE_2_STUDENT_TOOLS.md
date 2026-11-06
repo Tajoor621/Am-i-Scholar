@@ -7,7 +7,7 @@ Complete the offline-first student workspace across web and Android without chan
 ## Existing baseline
 
 - Web Student Mode has IndexedDB stores for courses, tasks, notes, flashcards, reviews, focus sessions, milestones, links, and preferences. Browser coverage exercises student records, ICS round-trip, focus timer recovery, and shared student-backup restore.
-- Android Student Mode now uses Room for courses, tasks, notes, flashcards, reviews, focus sessions, active timers, and calendar events, with a Room v3→v4 migration and native screens.
+- Android Student Mode uses Room for courses, tasks, notes, flashcards, reviews, focus sessions, active timers, and calendar events; the current schema is version 6. The task reminder adds nullable `reminderAtEpochMillis` via v5→v6 migration.
 - Remaining work is CI completion and final cross-platform restore acceptance. Real-device testing remains deferred until the formal APK/testing URL is ready.
 
 ## Delivery increments
@@ -16,6 +16,7 @@ Complete the offline-first student workspace across web and Android without chan
 2. **Focus continuity:** persist active/paused timer state, link sessions to a course, research paper, or task, and show local study streaks and a seven-day time summary. Keep flashcard scheduling and reviews entirely local and test it across reloads.
 3. **Tasks and calendar:** make course/task status and due-date flows complete, show tasks, milestones, imported events, and focus sessions in a usable calendar, and provide links back to their records.
 4. **Android parity and portability:** add Room entities/migrations and native Student Mode flows for courses, tasks, notes, flashcards, focus sessions, and calendar. Use the shared `am-i-scholar-student` version 1 JSON shape for web/Android transfer; keep the existing research backup formats separate.
+5. **Task reminders:** store an optional reminder instant on existing task records. Android schedules on-device alarms and notifications, requests notification permission explicitly, and reschedules after reboot. Web requires a one-time notification opt-in and an open app page; it makes no network request.
 
 ## Acceptance criteria
 
@@ -24,5 +25,6 @@ Complete the offline-first student workspace across web and Android without chan
 - Focus timer state survives restart; saved sessions retain selected links and appear consistently in summaries and calendars.
 - ICS fixture tests cover at least two IANA timezones, a daylight-saving transition, folded/escaped text, UTC timestamps, and all-day end-date semantics. Imported records retain correct instants and display in the active device timezone.
 - Web-to-Android and Android-to-web backups preserve supported student entities and their internal links; invalid backups do not partially overwrite existing data. Research-project links are retained only when a matching project ID exists on the destination because research backups remain separate.
+- Student backups with optional task reminders round-trip, while older v1 backups without `reminderAt` remain valid. Android keeps reminders local; browser reminders cannot be guaranteed after the app page is closed.
 - Android CI, unit tests, Room migration tests, and emulator UI checks pass. Real-device testing remains deferred until the app is complete and a formal APK/testing URL is ready.
 - Update privacy and feature documentation only for verified behavior; record unsupported recurrence/VTIMEZONE behavior clearly.

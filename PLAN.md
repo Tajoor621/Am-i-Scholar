@@ -31,7 +31,7 @@ The original CI results did not establish a complete browser baseline because th
 
 1. **Phase 0 — baseline and characterization:** complete inventories, get existing tests passing, add characterization tests, identify and repair pre-existing failures without changing behavior.
 2. **Phase 1 — research core:** upgrade literature search/source workflow and citations additively; preserve current exports and verify backup interoperability.
-3. **Phase 2 — student tools:** add offline ICS import/export and calendar handling, durable linked focus sessions with streak/time summaries, improve task/course/calendar flow, and deliver Student Mode parity on Android while keeping existing modules and backups interoperable. Acceptance criteria are tracked in [`docs/PHASE_2_STUDENT_TOOLS.md`](docs/PHASE_2_STUDENT_TOOLS.md).
+3. **Phase 2 — student tools:** add offline ICS import/export and calendar handling, durable linked focus sessions with streak/time summaries, local task reminders, improve task/course/calendar flow, and deliver Student Mode parity on Android while keeping existing modules and backups interoperable. Acceptance criteria are tracked in [`docs/PHASE_2_STUDENT_TOOLS.md`](docs/PHASE_2_STUDENT_TOOLS.md).
 4. **Phase 3 — opt-in AI:** implement only after the source-grounded, privacy-preserving boundary and evaluation set are in place.
 5. **Phase 4 — lectures:** local recording/transcription with a visible recording state.
 6. **Phase 5 — data ownership and sync:** encrypted backup and opt-in user-owned sync with prior backups still restorable.

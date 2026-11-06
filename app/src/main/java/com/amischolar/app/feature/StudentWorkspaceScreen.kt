@@ -1,5 +1,7 @@
 package com.amischolar.app.feature
 
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -93,6 +95,8 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     var semester by remember { mutableStateOf("") }
     var taskTitle by remember { mutableStateOf("") }
     var taskDate by remember { mutableStateOf("") }
+    var taskReminderDate by remember { mutableStateOf("") }
+    var taskReminderTime by remember { mutableStateOf("") }
     var noteTitle by remember { mutableStateOf("") }
     var noteText by remember { mutableStateOf("") }
     var deckTitle by remember { mutableStateOf("") }
@@ -110,6 +114,9 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
     var fullBackupBytes by remember { mutableStateOf<ByteArray?>(null) }
     var pendingFullRestore by remember { mutableStateOf<FullBackup.Preview?>(null) }
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    val requestNotificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        message = if (granted) "Task notifications enabled on this device." else "Notifications are off. Reminders remain saved with each task."
+    }
     LaunchedEffect(timer) { while (true) { now = System.currentTimeMillis(); delay(1000) } }
     val importIcs = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
@@ -197,12 +204,32 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                     }
                     "Tasks" -> {
                         Text("Tasks and assignments", style = MaterialTheme.typography.titleLarge)
+                        Text("Optional reminders use local Android notifications; they are not uploaded.", style = MaterialTheme.typography.bodySmall)
+                        if (Build.VERSION.SDK_INT >= 33 && !StudentTaskReminders.canNotify(context)) {
+                            OutlinedButton(onClick = { requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("Enable task notifications") }
+                        }
                         OutlinedTextField(taskTitle, { taskTitle = it }, label = { Text("Task title") }, modifier = Modifier.fillMaxWidth())
                         OutlinedTextField(taskDate, { taskDate = it }, label = { Text("Due date (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(taskReminderDate, { taskReminderDate = it }, label = { Text("Reminder date (YYYY-MM-DD, optional)") }, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(taskReminderTime, { taskReminderTime = it }, label = { Text("Reminder time (HH:MM, optional)") }, modifier = Modifier.fillMaxWidth())
                         SelectionPicker("Course", courses.map { it.id to it.name }, selectedCourse) { selectedCourse = it }
                         SelectionPicker("Research paper", projects.map { it.id to it.title }, selectedPaper) { selectedPaper = it }
-                        Button(enabled = taskTitle.isNotBlank(), onClick = { scope.launch(Dispatchers.IO) { studentDao.upsertTask(StudentTask(title = taskTitle.trim(), dueDate = taskDate.trim(), courseId = selectedCourse, paperId = selectedPaper)) }; taskTitle = ""; taskDate = "" }) { Text("Add task") }
-                        tasks.forEach { task -> Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) { Text(task.title, style = MaterialTheme.typography.titleMedium); Text("${task.dueDate.ifBlank { "No due date" }} · ${courses.firstOrNull { it.id == task.courseId }?.name ?: "No course"} · ${task.status}"); Row { OutlinedButton(onClick = { scope.launch(Dispatchers.IO) { studentDao.upsertTask(task.copy(status = if (task.status == "done") "todo" else "done", updatedAtEpochMillis = System.currentTimeMillis())) } }) { Text(if (task.status == "done") "Reopen" else "Complete") }; OutlinedButton(onClick = { scope.launch(Dispatchers.IO) { studentDao.deleteTask(task) } }) { Text("Delete") } } } } }
+                        Button(enabled = taskTitle.isNotBlank(), onClick = {
+                            val hasReminder = taskReminderDate.isNotBlank() || taskReminderTime.isNotBlank()
+                            val reminder = if (!hasReminder) null else runCatching {
+                                java.time.LocalDateTime.parse("${taskReminderDate}T${taskReminderTime}")
+                                    .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                            }.getOrNull()
+                            if (hasReminder && reminder == null) message = "Enter a valid reminder date and time, or leave both blank."
+                            else scope.launch {
+                                val task = StudentTask(title = taskTitle.trim(), dueDate = taskDate.trim(), reminderAtEpochMillis = reminder, courseId = selectedCourse, paperId = selectedPaper)
+                                val taskId = withContext(Dispatchers.IO) { studentDao.upsertTask(task) }
+                                reminder?.let { StudentTaskReminders.schedule(context, taskId, task.title, it) }
+                                taskTitle = ""; taskDate = ""; taskReminderDate = ""; taskReminderTime = ""
+                                message = if (reminder == null) "Task saved." else "Task and local reminder saved."
+                            }
+                        }) { Text("Add task") }
+                        tasks.forEach { task -> Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) { Text(task.title, style = MaterialTheme.typography.titleMedium); Text("${task.dueDate.ifBlank { "No due date" }} · ${courses.firstOrNull { it.id == task.courseId }?.name ?: "No course"} · ${task.status}"); task.reminderAtEpochMillis?.let { Text("Reminder · ${java.time.Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))}") }; Row { OutlinedButton(onClick = { val status = if (task.status == "done") "todo" else "done"; scope.launch(Dispatchers.IO) { studentDao.upsertTask(task.copy(status = status, updatedAtEpochMillis = System.currentTimeMillis())) }; if (status == "done") StudentTaskReminders.cancel(context, task.id) else task.reminderAtEpochMillis?.let { StudentTaskReminders.schedule(context, task.id, task.title, it) } }) { Text(if (task.status == "done") "Reopen" else "Complete") }; OutlinedButton(onClick = { scope.launch(Dispatchers.IO) { studentDao.deleteTask(task) }; StudentTaskReminders.cancel(context, task.id) }) { Text("Delete") } } } } }
                     }
                     "Notes" -> {
                         Text("Local notes", style = MaterialTheme.typography.titleLarge)

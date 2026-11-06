@@ -40,6 +40,7 @@ data class StudentTask(
     val paperId: Long? = null,
     val description: String = "",
     val status: String = "todo",
+    val reminderAtEpochMillis: Long? = null,
     val createdAtEpochMillis: Long = System.currentTimeMillis(),
     val updatedAtEpochMillis: Long = System.currentTimeMillis()
 )

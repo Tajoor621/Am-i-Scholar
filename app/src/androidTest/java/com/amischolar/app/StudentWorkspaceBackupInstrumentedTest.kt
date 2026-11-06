@@ -12,7 +12,7 @@ class StudentWorkspaceBackupInstrumentedTest {
     private fun fixture(courseId: String = "course-web-1"): ByteArray = """
         {"format":"am-i-scholar-student","version":1,"data":{
           "courses":[{"id":"course-web-1","name":"History 201","code":"HIS201","semester":"Fall","createdAt":"2026-10-01T00:00:00Z","updatedAt":"2026-10-01T00:00:00Z"}],
-          "tasks":[{"id":"task-web-1","title":"Essay","type":"todo","priority":2,"dueDate":"2026-11-03","courseId":"$courseId","paperId":null,"description":"Draft","status":"todo","createdAt":"2026-10-01T00:00:00Z","updatedAt":"2026-10-01T00:00:00Z"}],
+          "tasks":[{"id":"task-web-1","title":"Essay","type":"todo","priority":2,"dueDate":"2026-11-03","reminderAt":"2026-11-02T09:00:00Z","courseId":"$courseId","paperId":null,"description":"Draft","status":"todo","createdAt":"2026-10-01T00:00:00Z","updatedAt":"2026-10-01T00:00:00Z"}],
           "notes":[],"decks":[{"id":"deck-web-1","title":"Terms","courseId":"course-web-1","paperId":null,"createdAt":"2026-10-01T00:00:00Z"}],
           "cards":[{"id":"card-web-1","deckId":"deck-web-1","front":"Question","back":"Answer","repetitions":1,"easeFactor":2.5,"intervalDays":1,"dueAt":"2026-10-29T00:00:00Z","updatedAt":"2026-10-28T00:00:00Z"}],
           "reviews":[{"id":"review-web-1","cardId":"card-web-1","rating":"good","reviewedAt":"2026-10-28T00:00:00Z"}],
@@ -26,6 +26,7 @@ class StudentWorkspaceBackupInstrumentedTest {
         val data = StudentWorkspaceBackup.decode(fixture())
         assertEquals("History 201", data.getJSONArray("courses").getJSONObject(0).getString("name"))
         assertEquals("course-web-1", data.getJSONArray("tasks").getJSONObject(0).getString("courseId"))
+        assertEquals("2026-11-02T09:00:00Z", data.getJSONArray("tasks").getJSONObject(0).getString("reminderAt"))
         assertEquals("card-web-1", data.getJSONArray("reviews").getJSONObject(0).getString("cardId"))
         assertEquals("event-web-1", data.getJSONArray("calendarEvents").getJSONObject(0).getString("uid"))
     }
