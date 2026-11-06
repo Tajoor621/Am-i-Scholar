@@ -270,3 +270,15 @@ dialog.dialog-card::backdrop { background: rgba(10, 16, 28, 0.62); }
   button, .panel, .record, .chip { border: 1px solid ButtonText; }
   .hero { border: 1px solid CanvasText; }
 }
+
+
+/* Local student note editor */
+.student-note-editor{margin:0 0 14px;padding:12px;border:1px solid var(--line,#cbd5e1);border-radius:12px;background:var(--surface,#fff)}
+.student-note-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.student-note-toolbar button{min-height:38px;padding:8px 11px}
+.student-note-preview{margin-top:10px;padding:12px;border:1px solid var(--line,#d5deea);border-radius:10px;background:var(--surface-soft,#f7f9fc);overflow-wrap:anywhere}
+.student-note-preview h1,.student-note-preview h2,.student-note-preview h3{margin:.5em 0}
+.student-note-preview p{margin:.4em 0;white-space:pre-wrap}
+.student-note-preview mark{background:#ffe39a;color:inherit;padding:0 .12em}
+.student-note-preview pre{white-space:pre-wrap;overflow:auto;padding:10px;border-radius:8px;background:#172b49;color:#f4f7fc}
+.student-note-image{margin:8px 0}.student-note-image img{display:block;max-width:min(100%,720px);max-height:520px;object-fit:contain;border-radius:8px}
