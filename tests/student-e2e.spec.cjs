@@ -249,7 +249,7 @@ test("student notes keep Markdown compatibility and import PDF text locally",asy
  await expect(page.locator(".student-note-preview img")).toHaveCount(1);
  await page.locator("#academicBody input[aria-label='Choose a PDF to extract']").setInputFiles({name:"reading-sample.pdf",mimeType:"application/pdf",buffer:await fs.readFile("tests/fixtures/pdf-reader-sample.pdf")});
  await expect(page.locator("#studentNoteEditorStatus")).toContainText("PDF text added locally.",{timeout:20000});
- await expect(page.locator('#academicBody textarea[name="content"]')).toContainText("Highlight this sentence.");
+ await expect(page.locator('#academicBody textarea[name="content"]')).toHaveValue(/Highlight this sentence\./);
  await page.locator('#academicBody form button[type="submit"]').click();
  await expect(page.locator(".student-note-preview")).toContainText("Highlight this sentence.");
  await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
