@@ -236,8 +236,11 @@ test("student notes keep Markdown compatibility and import PDF text locally",asy
  await page.locator("#academicNav").getByRole("button",{name:"Notes"}).click();
  await page.getByRole("button",{name:"+ New note"}).click();
  await page.locator('#academicBody input[name="title"]').fill("Rich notes");
- await page.locator('#academicBody textarea[name="content"]').fill("Existing Markdown stays readable.");
+ const editor=page.locator('#academicBody textarea[name="content"]');
+ await editor.fill("Existing Markdown stays readable.\nbold text\nhighlighted text");
+ await editor.evaluate(el=>{const start=el.value.indexOf("bold text");el.setSelectionRange(start,start+9)});
  await page.getByRole("button",{name:"Bold"}).click();
+ await editor.evaluate(el=>{const start=el.value.indexOf("highlighted text");el.setSelectionRange(start,start+16)});
  await page.getByRole("button",{name:"Highlight"}).click();
  await expect(page.locator(".student-note-preview strong")).toContainText("bold text");
  await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
