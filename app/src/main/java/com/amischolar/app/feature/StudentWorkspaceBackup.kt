@@ -23,7 +23,7 @@ object StudentWorkspaceBackup {
         val data = JSONObject()
         fun arr(name: String, rows: List<JSONObject>) { data.put(name, JSONArray().also { a -> rows.forEach { a.put(it) } }) }
         arr("courses", courses.map { JSONObject().put("id", it.id.toString()).put("name", it.name).put("code", it.code).put("semester", it.semester).put("createdAt", iso(it.createdAtEpochMillis)).put("updatedAt", iso(it.updatedAtEpochMillis)) })
-        arr("tasks", tasks.map { JSONObject().put("id", it.id.toString()).put("title", it.title).put("type", it.type).put("priority", it.priority).put("dueDate", it.dueDate).put("courseId", it.courseId?.toString()).put("paperId", it.paperId?.toString()).put("description", it.description).put("status", it.status).put("createdAt", iso(it.createdAtEpochMillis)).put("updatedAt", iso(it.updatedAtEpochMillis)) })
+        arr("tasks", tasks.map { JSONObject().put("id", it.id.toString()).put("title", it.title).put("type", it.type).put("priority", it.priority).put("dueDate", it.dueDate).put("reminderAt", it.reminderAtEpochMillis?.let(::iso)).put("courseId", it.courseId?.toString()).put("paperId", it.paperId?.toString()).put("description", it.description).put("status", it.status).put("createdAt", iso(it.createdAtEpochMillis)).put("updatedAt", iso(it.updatedAtEpochMillis)) })
         arr("notes", notes.map { JSONObject().put("id", it.id.toString()).put("title", it.title).put("content", it.content).put("courseId", it.courseId?.toString()).put("paperId", it.paperId?.toString()).put("tags", it.tags).put("updatedAt", iso(it.updatedAtEpochMillis)) })
         arr("decks", decks.map { JSONObject().put("id", it.id.toString()).put("title", it.title).put("courseId", it.courseId?.toString()).put("paperId", it.paperId?.toString()).put("createdAt", iso(it.createdAtEpochMillis)) })
         arr("cards", cards.map { JSONObject().put("id", it.id.toString()).put("deckId", it.deckId.toString()).put("front", it.front).put("back", it.back).put("repetitions", it.repetitions).put("easeFactor", it.easeFactor).put("intervalDays", it.intervalDays).put("dueAt", iso(it.dueAtEpochMillis)).put("updatedAt", iso(it.updatedAtEpochMillis)) })
@@ -100,7 +100,8 @@ object StudentWorkspaceBackup {
         }
         for (i in 0 until rows("tasks").length()) {
             val x = rows("tasks").getJSONObject(i)
-            tasks[x.getString("id")] = dao.insertBackupTask(StudentTask(title=x.getString("title"), type=x.optString("type","todo"), priority=x.optInt("priority",2), dueDate=x.optString("dueDate"), courseId=optRef(x,"courseId",courses), paperId=paperRef(x), description=x.optString("description"), status=x.optString("status","todo"), createdAtEpochMillis=millis(x,"createdAt"), updatedAtEpochMillis=millis(x,"updatedAt")))
+            val reminder = x.optString("reminderAt").takeIf { it.isNotBlank() && it != "null" }?.let { Instant.parse(it).toEpochMilli() }
+            tasks[x.getString("id")] = dao.insertBackupTask(StudentTask(title=x.getString("title"), type=x.optString("type","todo"), priority=x.optInt("priority",2), dueDate=x.optString("dueDate"), reminderAtEpochMillis=reminder, courseId=optRef(x,"courseId",courses), paperId=paperRef(x), description=x.optString("description"), status=x.optString("status","todo"), createdAtEpochMillis=millis(x,"createdAt"), updatedAtEpochMillis=millis(x,"updatedAt")))
         }
         for (i in 0 until rows("notes").length()) {
             val x = rows("notes").getJSONObject(i)

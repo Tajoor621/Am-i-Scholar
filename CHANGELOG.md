@@ -22,6 +22,14 @@
 
 # Changelog
 
+## Unreleased — Phase 2 local task reminders
+
+- Add optional task reminder dates and times to the existing offline task records.
+- Web notifications are explicitly enabled and run while the app page remains open; reminder state stays in existing student backup data.
+- Android uses local alarms and notifications, reschedules pending reminders after device reboot, and adds a v5→v6 migration that preserves existing tasks.
+- Add coverage for browser permission gating, reload persistence, Android backup compatibility, and the existing migration path.
+- Keep focus timing, saved sessions, streaks, and study-time summaries unchanged.
+
 ## Unreleased — Phase 1 federated literature discovery
 
 - Search Crossref, OpenAlex, and PubMed concurrently by default, with individual provider selection and partial-failure reporting.

@@ -28,6 +28,25 @@ test("student mode keeps existing researcher modules and supports course, task, 
  await page.getByRole("button",{name:"Researcher Mode"}).click();
  await expect(page.locator("#homeModules .module")).toHaveCount(12);
 });
+test("task reminders stay local and persist across reloads",async({page})=>{
+ await page.context().grantPermissions(["notifications"]);
+ await page.goto("http://127.0.0.1:8000/");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Tasks"}).click();
+ await page.getByRole("button",{name:"Enable browser reminders"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Browser reminders enabled on this device.");
+ await page.getByRole("button",{name:"+ New task"}).click();
+ await page.locator('#academicBody input[name="title"]').fill("Review chapter");
+ await page.locator('#academicBody input[name="reminderAt"]').fill("2030-05-12T12:30");
+ await page.locator('#academicBody form button[type="submit"]').click();
+ await expect(page.locator("#academicBody")).toContainText("Review chapter");
+ await expect(page.locator("#academicBody")).toContainText("Reminder");
+ await page.reload();
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Tasks"}).click();
+ await expect(page.locator("#academicBody")).toContainText("Review chapter");
+ await expect(page.locator("#academicBody")).toContainText("Reminder");
+});
 test("student flashcard study updates review history offline",async({page})=>{
  await page.goto("http://127.0.0.1:8000/");
  await page.getByRole("button",{name:"Student Mode"}).click();
@@ -252,12 +271,17 @@ test("student notes keep Markdown compatibility and import PDF text locally",asy
  await expect(page.locator("#studentNoteEditorStatus")).toContainText("PDF text added locally.",{timeout:20000});
  await expect(page.locator('#academicBody textarea[name="content"]')).toHaveValue(/Highlight this sentence\./);
  await page.locator('#academicBody form button[type="submit"]').click();
- await expect(page.locator(".student-note-preview")).toContainText("Highlight this sentence.");
- await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
- await expect(page.locator(".student-note-preview img")).toHaveCount(1);
+ await expect(page.locator("#academicBody form")).toHaveCount(0);
+ const savedNote=page.locator("#academicBody article.record .student-note-preview");
+ await expect(savedNote).toContainText("Highlight this sentence.");
+ await expect(savedNote.locator("mark")).toContainText("highlighted text");
+ await expect(savedNote.locator("img")).toHaveCount(1);
  await page.reload();
  await page.getByRole("button",{name:"Student Mode"}).click();
  await page.locator("#academicNav").getByRole("button",{name:"Notes"}).click();
- await expect(page.locator(".student-note-preview img")).toHaveCount(1);
+ await expect(page.getByRole("heading",{name:"Rich notes"})).toBeVisible();
+ await page.getByRole("button",{name:"Edit"}).click();
+ await expect(page.locator('#academicBody textarea[name="content"]')).toHaveValue(/!\[icon-32\.png\]\(data:image\/jpeg;base64,/);
+ await expect(page.locator('#academicBody textarea[name="content"]')).toHaveValue(/Highlight this sentence\./);
  expect(external).toEqual([]);
 });

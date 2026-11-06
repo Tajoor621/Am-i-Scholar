@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [ResearchProject::class, ResearchNote::class, ResearchSource::class, EvidenceLink::class, StudentCourse::class, StudentTask::class, StudentNote::class, StudentDeck::class, StudentCard::class, StudentReview::class, StudentStudySession::class, StudentActiveTimer::class, StudentCalendarEvent::class, StudentLecture::class], version = 5, exportSchema = false)
+@Database(entities = [ResearchProject::class, ResearchNote::class, ResearchSource::class, EvidenceLink::class, StudentCourse::class, StudentTask::class, StudentNote::class, StudentDeck::class, StudentCard::class, StudentReview::class, StudentStudySession::class, StudentActiveTimer::class, StudentCalendarEvent::class, StudentLecture::class], version = 6, exportSchema = false)
 abstract class ScholarDatabase : RoomDatabase() {
     abstract fun researchProjectDao(): ResearchProjectDao
     abstract fun researchWorkspaceDao(): ResearchWorkspaceDao
@@ -69,12 +69,17 @@ abstract class ScholarDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_student_lectures_createdAtEpochMillis ON student_lectures (createdAtEpochMillis)")
             }
         }
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE student_tasks ADD COLUMN reminderAtEpochMillis INTEGER")
+            }
+        }
         @Volatile private var instance: ScholarDatabase? = null
         fun getInstance(context: Context): ScholarDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, ScholarDatabase::class.java, "am_i_scholar.db"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build().also { instance = it }
             }
     }
 }

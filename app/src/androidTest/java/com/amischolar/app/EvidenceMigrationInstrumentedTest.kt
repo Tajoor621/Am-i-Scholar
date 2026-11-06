@@ -31,7 +31,7 @@ class EvidenceMigrationInstrumentedTest {
         raw.version = 2
         raw.close()
         val db = Room.databaseBuilder(context, ScholarDatabase::class.java, name)
-            .addMigrations(ScholarDatabase.MIGRATION_2_3, ScholarDatabase.MIGRATION_3_4, ScholarDatabase.MIGRATION_4_5).build()
+            .addMigrations(ScholarDatabase.MIGRATION_2_3, ScholarDatabase.MIGRATION_3_4, ScholarDatabase.MIGRATION_4_5, ScholarDatabase.MIGRATION_5_6).build()
         try {
             runBlocking(Dispatchers.IO) {
                 val dao = db.researchWorkspaceDao()
