@@ -27,5 +27,18 @@ const PDFReader=(()=>{
   saveButton.onclick=()=>{const quote=state.selectedQuote;if(!quote||!state.document)return;const selection=window.getSelection(),noteText=note.value.trim();const title="PDF highlight · "+state.fileName+" · page "+state.page;const content=["PDF file: "+JSON.stringify(state.fileName),"PDF key: "+state.pdfKey,"Page: "+state.page,"Highlight text: "+JSON.stringify(quote),"Notes: "+JSON.stringify(noteText),"Stored locally: Yes"].join("\n");save(title,content);state.selectedQuote="";saveButton.disabled=true;note.value="";selection?.removeAllRanges();renderPage();status.textContent="Highlight and note saved with this paper."};
   refreshSaved();return box;
  }
- return {render,dispose};
+ async function extractText(file,{maxPages=200,maxChars=200000}={}) {
+  if(!file||file.size>50*1024*1024)throw Error("PDF files are limited to 50 MB.");
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  if(new TextDecoder().decode(bytes.slice(0,5))!=="%PDF-")throw Error("Choose a valid PDF file.");
+  const pdf=await library(),task=pdf.getDocument({data:bytes,cMapUrl:new URL("./vendor/pdfjs/cmaps/",document.baseURI).href,cMapPacked:true,standardFontDataUrl:new URL("./vendor/pdfjs/standard_fonts/",document.baseURI).href,wasmUrl:new URL("./vendor/pdfjs/wasm/",document.baseURI).href}),documentProxy=await task.promise;
+  try {
+   if(documentProxy.numPages>maxPages)throw Error("This import is limited to "+maxPages+" pages. Split the PDF into smaller parts.");
+   const pages=[];let length=0;
+   for(let number=1;number<=documentProxy.numPages;number++){const page=await documentProxy.getPage(number),content=await page.getTextContent(),text=content.items.map(item=>typeof item.str==="string"?item.str:"").filter(Boolean).join(" ").replace(/\\s+/g," ").trim();if(text){pages.push("Page "+number+"\\n"+text);length+=text.length}if(length>maxChars)throw Error("Extracted text exceeds the "+maxChars+" character limit. Import fewer pages at a time.")}
+   if(!pages.length)throw Error("No selectable text was found. This PDF may contain scanned images.");
+   return pages.join("\\n\\n")
+  } finally {await documentProxy.destroy?.()}
+ }
+ return {render,dispose,extractText};
 })();
