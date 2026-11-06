@@ -48,17 +48,19 @@ The web researcher store currently uses localStorage key `amischolar.web.v2`, wi
 
 ## Student workspace
 
-Student mode is a separate offline workspace in `student.js`. It uses IndexedDB database `amischolar-academic-v1`, version 1, with stores `semesters`, `courses`, `tasks`, `notes`, `decks`, `cards`, `reviews`, `sessions`, `milestones`, `links`, and `preferences`. It also uses localStorage `amischolar.workspace.mode` and sessionStorage `amischolar.focus.active` for mode and active timer state.
+Student Notes now provide a formatting toolbar and preview on web and Android. PDF text import from Student Notes is currently web-only. It uses the bundled PDF.js locally, limited to 200 pages and 200,000 extracted characters; scanned image-only PDFs need OCR, which is not included. Embedded note images are resized and remain within the existing note content and backup formats.
+
+Student mode is a separate offline workspace in `student.js`. It uses IndexedDB database `amischolar-academic-v1`, version 2, with stores `semesters`, `courses`, `tasks`, `notes`, `decks`, `cards`, `reviews`, `sessions`, `milestones`, `links`, and `preferences`. It also uses localStorage `amischolar.workspace.mode` and sessionStorage `amischolar.focus.active` for mode and active timer state.
 
 | Feature | Current entry point | Reads / writes | Existing test coverage |
 | --- | --- | --- | --- |
 | Student overview | Student Mode → Overview | Reads courses, tasks, cards, sessions from IndexedDB | Student E2E covers entry and reload, but does not assert overview totals: UNVERIFIED. |
 | Courses and semesters | Student Mode → Courses | Reads/writes `courses` (the `semesters` store has no visible workflow located) | Student E2E creates and finds a course. Semester workflow: UNVERIFIED. |
 | Tasks and assignments | Student Mode → Tasks | Reads/writes `tasks`; may link course and paper IDs | Student E2E creates a task; characterization creates a dated task and checks the unified calendar. Status transitions/linking: UNVERIFIED. |
-| Notes | Student Mode → Notes | Reads/writes `notes`; Markdown source retained locally; can link course/paper | Student E2E creates a note and verifies it after reload. Search/edit/delete: UNVERIFIED. |
+| Notes | Student Mode → Notes | Reads/writes `notes`; Markdown source retained locally; formatting toolbar and safe preview support bold, highlights, lists, code blocks, and resized embedded images; can link course/paper | Student E2E covers note persistence and rich formatting. Search/edit/delete: UNVERIFIED. |
 | Flashcards and decks | Student Mode → Flashcards | Reads/writes `decks`, `cards`, `reviews`; review scheduling is local | Student E2E creates a deck/card, reviews offline, and checks no due card remains. Manual card management and scheduler history: UNVERIFIED. |
 | Focus timer and session log | Student Mode → Focus | Reads/writes `sessions`; active timer uses sessionStorage | `characterization.spec.cjs` starts, pauses/resumes, finishes, and checks logged time. Timer persistence after reload and task/course linking: UNVERIFIED. |
-| Calendar | Student Mode → Calendar | Reads student tasks, milestones, and sessions; no write action is exposed | `characterization.spec.cjs` checks a dated task and finished focus session appear. Month filtering and timezone semantics: UNVERIFIED. ICS import/export requested in the brief is not present in the inspected implementation. |
+| Calendar | Student Mode → Calendar | Reads student tasks, milestones, and sessions; no write action is exposed | `characterization.spec.cjs` checks a dated task and finished focus session appear. Month filtering and timezone semantics: UNVERIFIED. Local ICS import/export is implemented in `student.js` and covered by calendar fixture tests. |
 | Student backup and restore | Backup & settings → Student workspace backup | Reads/writes coursework stores; lecture audio stays in the separate local `lectures` store; export omits it and restore preserves it | `characterization.spec.cjs` covers JSON backup download. Student restore: UNVERIFIED. |
 | Lecture capture and transcript | Student Mode → Lectures | Stores audio Blob and editable manual transcript in IndexedDB; playback/export/delete remain local | `student-e2e.spec.cjs` covers mocked start/stop, transcript persistence, network boundary, and deletion. Real microphone/quota behavior: deferred to device testing. |
 

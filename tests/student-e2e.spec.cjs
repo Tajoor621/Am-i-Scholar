@@ -227,3 +227,37 @@ test("lecture capture is local, editable, persistent and deletable",async({page}
  await page.getByRole("button",{name:"Delete",exact:true}).click();
  await expect(page.getByText("No recordings saved yet.")).toBeVisible();
 });
+
+test("student notes keep Markdown compatibility and import PDF text locally",async({page})=>{
+ const external=[];
+ page.on("request",request=>{if(/^https?:/.test(request.url())&&!request.url().startsWith("http://127.0.0.1:8000"))external.push(request.url())});
+ await page.goto("http://127.0.0.1:8000/");
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Notes"}).click();
+ await page.getByRole("button",{name:"+ New note"}).click();
+ await page.locator('#academicBody input[name="title"]').fill("Rich notes");
+ const editor=page.locator('#academicBody textarea[name="content"]');
+ await editor.fill("Existing Markdown stays readable.\nbold text\nhighlighted text");
+ await editor.evaluate(el=>{const start=el.value.indexOf("bold text");el.setSelectionRange(start,start+9)});
+ await page.getByRole("button",{name:"Bold"}).click();
+ await editor.evaluate(el=>{const start=el.value.indexOf("highlighted text");el.setSelectionRange(start,start+16)});
+ await page.getByRole("button",{name:"Highlight"}).click();
+ await expect(page.locator(".student-note-preview strong")).toContainText("bold text");
+ await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
+ await editor.evaluate(el=>{el.value+="\n";el.setSelectionRange(el.value.length,el.value.length);el.dispatchEvent(new Event("input",{bubbles:true}))});
+ await page.locator("#academicBody input[aria-label='Choose an image to insert']").setInputFiles({name:"icon-32.png",mimeType:"image/png",buffer:await fs.readFile("brand/icon-32.png")});
+ await expect(page.locator("#studentNoteEditorStatus")).toContainText("Image resized and added");
+ await expect(page.locator(".student-note-preview img")).toHaveCount(1);
+ await page.locator("#academicBody input[aria-label='Choose a PDF to extract']").setInputFiles({name:"reading-sample.pdf",mimeType:"application/pdf",buffer:await fs.readFile("tests/fixtures/pdf-reader-sample.pdf")});
+ await expect(page.locator("#studentNoteEditorStatus")).toContainText("PDF text added locally.",{timeout:20000});
+ await expect(page.locator('#academicBody textarea[name="content"]')).toHaveValue(/Highlight this sentence\./);
+ await page.locator('#academicBody form button[type="submit"]').click();
+ await expect(page.locator(".student-note-preview")).toContainText("Highlight this sentence.");
+ await expect(page.locator(".student-note-preview mark")).toContainText("highlighted text");
+ await expect(page.locator(".student-note-preview img")).toHaveCount(1);
+ await page.reload();
+ await page.getByRole("button",{name:"Student Mode"}).click();
+ await page.locator("#academicNav").getByRole("button",{name:"Notes"}).click();
+ await expect(page.locator(".student-note-preview img")).toHaveCount(1);
+ expect(external).toEqual([]);
+});

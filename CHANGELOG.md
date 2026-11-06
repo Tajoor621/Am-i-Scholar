@@ -1,3 +1,9 @@
+# Rich student notes and PDF text import
+
+- Add a safe Markdown toolbar and preview to web Student Notes, including bold, highlights, lists, code blocks, and resized local images.
+- Extract selectable text from local PDFs into a note using bundled PDF.js; scanned-image OCR is not included.
+- Preserve the existing note content field and backup format. The web-only PDF importer limits files to 50 MB, 200 pages, and 200,000 extracted characters.
+
 # Presentation and workspace clarity
 
 - Refresh the GitHub Pages workspace: document title, description, canonical URL, Open Graph and Twitter cards, PNG favicon, skip link, and stronger contrast.

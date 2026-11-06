@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -146,6 +147,16 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
             } catch (error: Exception) { message = "Backup validation failed: ${error.message ?: "invalid backup"}" }
         }
     }
+    val addNoteImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) scope.launch {
+            try {
+                val encoded = withContext(Dispatchers.IO) { encodeStudentNoteImage(context, uri) }
+                val count = Regex("!\\[[^\\]]*\\]\\(data:image/jpeg;base64,").findAll(noteText).count()
+                if (count >= 4) message = "A note can contain up to four images."
+                else { noteText += (if (noteText.isBlank()) "" else "\n") + "![Image](data:image/jpeg;base64," + encoded + ")"; message = "Image resized and added to this note." }
+            } catch (error: Exception) { message = "Could not add image: " + (error.message ?: "unsupported image") }
+        }
+    }
     val dueCards = cards.filter { it.dueAtEpochMillis <= now && (selectedDeck == null || it.deckId == selectedDeck) }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Student workspace") }, navigationIcon = { OutlinedButton(onClick = onBack) { Text("Back") } }) }) { padding ->
@@ -196,11 +207,20 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                     "Notes" -> {
                         Text("Local notes", style = MaterialTheme.typography.titleLarge)
                         OutlinedTextField(noteTitle, { noteTitle = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                            OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "**bold text**" }) { Text("Bold") }
+                            OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "==highlighted text==" }) { Text("Highlight") }
+                            OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "- list item" }) { Text("Bullets") }
+                            OutlinedButton(onClick = { val fence = String(CharArray(3) { 96.toChar() }); noteText += (if (noteText.isBlank()) "" else "\n") + fence + "\ncode\n" + fence }) { Text("Code") }
+                            OutlinedButton(onClick = { addNoteImage.launch("image/*") }) { Text("Image") }
+                        }
                         OutlinedTextField(noteText, { noteText = it }, label = { Text("Markdown note") }, minLines = 4, modifier = Modifier.fillMaxWidth())
+                        Text("Preview", style = MaterialTheme.typography.titleSmall)
+                        StudentNotePreview(noteText)
                         SelectionPicker("Course", courses.map { it.id to it.name }, selectedCourse) { selectedCourse = it }
                         SelectionPicker("Research paper", projects.map { it.id to it.title }, selectedPaper) { selectedPaper = it }
                         Button(enabled = noteTitle.isNotBlank(), onClick = { scope.launch(Dispatchers.IO) { studentDao.upsertNote(StudentNote(title = noteTitle.trim(), content = noteText, courseId = selectedCourse, paperId = selectedPaper)) }; noteTitle = ""; noteText = "" }) { Text("Save note") }
-                        notes.forEach { Text("${it.title}\n${it.content}", style = MaterialTheme.typography.bodyMedium) }
+                        notes.forEach { Text(it.title, style = MaterialTheme.typography.titleMedium); StudentNotePreview(it.content) }
                     }
                     "Flashcards" -> {
                         Text("Flashcards · ${reviews.size} reviews", style = MaterialTheme.typography.titleLarge)
