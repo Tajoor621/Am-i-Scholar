@@ -34,7 +34,7 @@ import java.io.ByteArrayOutputStream
 
 private const val MAX_NOTE_IMAGE_BYTES = 320_000
 private const val MAX_NOTE_IMAGE_EDGE = 1400
-private val NOTE_CODE_FENCE = String(CharArray(3) { 96 })
+private val NOTE_CODE_FENCE = String(CharArray(3) { 96.toChar() })
 
 fun encodeStudentNoteImage(context: Context, uri: Uri): String {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
