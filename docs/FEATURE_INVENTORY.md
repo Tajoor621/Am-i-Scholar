@@ -48,7 +48,7 @@ The web researcher store currently uses localStorage key `amischolar.web.v2`, wi
 
 ## Student workspace
 
-PDF text import from Student Notes is currently web-only. It uses the bundled PDF.js locally, limited to 200 pages and 200,000 extracted characters; scanned image-only PDFs need OCR, which is not included. Embedded note images are resized and remain within the existing note content and backup formats.
+Student Notes now provide a formatting toolbar and preview on web and Android. PDF text import from Student Notes is currently web-only. It uses the bundled PDF.js locally, limited to 200 pages and 200,000 extracted characters; scanned image-only PDFs need OCR, which is not included. Embedded note images are resized and remain within the existing note content and backup formats.
 
 Student mode is a separate offline workspace in `student.js`. It uses IndexedDB database `amischolar-academic-v1`, version 2, with stores `semesters`, `courses`, `tasks`, `notes`, `decks`, `cards`, `reviews`, `sessions`, `milestones`, `links`, and `preferences`. It also uses localStorage `amischolar.workspace.mode` and sessionStorage `amischolar.focus.active` for mode and active timer state.
 
