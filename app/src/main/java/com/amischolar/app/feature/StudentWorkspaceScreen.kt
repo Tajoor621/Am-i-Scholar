@@ -211,7 +211,7 @@ fun StudentWorkspaceScreen(database: ScholarDatabase, onBack: () -> Unit) {
                             OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "**bold text**" }) { Text("Bold") }
                             OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "==highlighted text==" }) { Text("Highlight") }
                             OutlinedButton(onClick = { noteText += (if (noteText.isBlank()) "" else "\n") + "- list item" }) { Text("Bullets") }
-                            OutlinedButton(onClick = { val fence = String(CharArray(3) { 96 }); noteText += (if (noteText.isBlank()) "" else "\n") + fence + "\ncode\n" + fence }) { Text("Code") }
+                            OutlinedButton(onClick = { val fence = String(CharArray(3) { 96.toChar() }); noteText += (if (noteText.isBlank()) "" else "\n") + fence + "\ncode\n" + fence }) { Text("Code") }
                             OutlinedButton(onClick = { addNoteImage.launch("image/*") }) { Text("Image") }
                         }
                         OutlinedTextField(noteText, { noteText = it }, label = { Text("Markdown note") }, minLines = 4, modifier = Modifier.fillMaxWidth())
