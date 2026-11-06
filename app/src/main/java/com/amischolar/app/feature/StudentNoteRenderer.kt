@@ -17,7 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -95,11 +99,12 @@ fun StudentNotePreview(content: String) {
 
 @Composable
 private fun NoteImage(alt: String, encoded: String) {
-    val bitmap = produceState<Bitmap?>(null, encoded) {
-        value = withContext(Dispatchers.IO) {
+    var bitmap by remember(encoded) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(encoded) {
+        bitmap = withContext(Dispatchers.IO) {
             runCatching { val bytes = Base64.decode(encoded, Base64.DEFAULT); BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
         }
-    }.value
+    }
     if (bitmap != null) Image(bitmap.asImageBitmap(), contentDescription = alt.ifBlank { "Note image" }, modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp), contentScale = ContentScale.Fit)
 }
 
